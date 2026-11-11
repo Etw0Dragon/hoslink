@@ -61,7 +61,7 @@ fi
 gh api "repos/$repo/environments/github-pages/deployment-branch-policies" --jq '.branch_policies[] | [.name, .type] | @tsv'
 cat >"$scratch/protection.json" <<JSON
 {
-  "required_status_checks":{"strict":true,"contexts":["Go and PostgreSQL"]},
+  "required_status_checks":{"strict":true,"contexts":[],"checks":[{"context":"Go and PostgreSQL","app_id":15368}]},
   "enforce_admins":true,
   "required_pull_request_reviews":{"dismiss_stale_reviews":true,"required_approving_review_count":$approvals},
   "restrictions":null,

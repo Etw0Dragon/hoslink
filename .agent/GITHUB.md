@@ -178,7 +178,7 @@ Aucun service payant, hébergement backend, domaine, secret de paiement ni produ
 - Aperçu publié et accessible : https://etw0dragon.github.io/hoslink/. HTTPS imposé, source GitHub Actions, environnement limité à `main`.
 - [Première publication Pages réussie](https://github.com/Etw0Dragon/hoslink/actions/runs/43016395074).
 - [CI complète PostgreSQL réussie sur GitHub](https://github.com/Etw0Dragon/hoslink/actions/runs/43016417032), en plus de la recette PostgreSQL locale.
-- Protections appliquées à `main` et `backend` : PR et contrôle `Go and PostgreSQL`, historique linéaire, discussions résolues, aucun force push ni suppression, administrateurs inclus ; zéro approbation tierce obligatoire au pilote.
+- Protections appliquées à `main` et `backend` : PR et contrôle `Go and PostgreSQL` émis par l’application GitHub Actions officielle (ID 15368 vérifié par API), historique linéaire, discussions résolues, aucun force push ni suppression, administrateurs inclus ; zéro approbation tierce obligatoire au pilote.
 - Permissions Actions par défaut en lecture, approbation de PR par Actions désactivée. Actions épinglées par SHA. Lien du site renseigné dans la présentation du dépôt.
 - Vérification HTTP : 21 pages/ressources répondent 200, formulaires absents des pages publiées ; `.env`, sources serveur et fichier Go du logo répondent 404.
 - GitHub CLI installé dans `~/.local/bin/gh` à partir de l’archive officielle vérifiée ; authentification locale hors dépôt. Aucun jeton committé.
