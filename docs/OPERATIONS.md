@@ -78,3 +78,11 @@ Documentation officielle consultée : https://coolify.io/docs/applications/confi
 ### Échec de compilation `tsc: not found` / code 127
 
 Coolify peut injecter `NODE_ENV=production` pendant la construction. Le Dockerfile utilise explicitement `npm ci --include=dev` dans l’étape de compilation, puis retire les dépendances de développement avant l’image finale. Garder `NODE_ENV=production` pour l’exécution. Dans Coolify, les secrets SMTP, base et Better Auth sont des variables d’exécution : désactiver leur option Build Variable. `requireTLS` n’est pas une variable séparée ; `?requireTLS=true` fait partie de la même ligne `SMTP_URL` avec le port 587.
+
+### Mémorisation de l’A2F
+
+Après déploiement, à la prochaine connexion demandant Authenticator, laisser cochée « Faire confiance à cet appareil pendant 30 jours » sur un appareil personnel. Better Auth mémorise le navigateur avec un cookie signé et une entrée serveur ; chaque reconnexion réussie renouvelle cette durée. Un autre navigateur, la suppression des cookies ou l’expiration redemande le code. Cette option existe aussi pour les codes de secours, qui restent à usage unique.
+
+La page Sécurité permet de révoquer tous les appareils mémorisés sans fermer la session courante ; le prochain accès par mot de passe exigera l’A2F. La récupération du mot de passe révoque sessions et appareils de confiance. Les sessions et appareils disposent de commandes distinctes. Aucun changement de variables ni migration SQL supplémentaire n’est nécessaire.
+
+Référence : https://better-auth.com/docs/plugins/2fa#trusted-devices.

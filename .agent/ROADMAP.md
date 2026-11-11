@@ -143,3 +143,10 @@ Dépendances Node HTTP, SMTP et esbuild mises à jour après audit : zéro vuln�
 ## Correction du build Coolify — 11 novembre 2026
 
 Échec utilisateur code 127 reproduit avec `ARG NODE_ENV=production` : npm omet les dépendances de développement et la compilation échoue avec `tsc: not found`. Le Dockerfile exige maintenant `npm ci --include=dev` avant compilation, en conservant le nettoyage `npm prune --omit=dev` pour l’image finale. Vérification de l’image corrigée avec la même injection de NODE_ENV. Documentation des variables d’exécution et du paramètre SMTP `requireTLS` actualisée.
+
+## Appareils de confiance et refonte de l’espace professionnel — 11 novembre 2026
+
+- Option « Faire confiance à cet appareil pendant 30 jours » sur Authenticator et code de secours. Cookie natif Better Auth signé, HttpOnly, SameSite=Lax, Secure en production, contrôlé par les enregistrements serveur. Expiration et révocation imposent à nouveau le second facteur. Réinitialiser le mot de passe révoque aussi les appareils mémorisés.
+- Révocation des appareils depuis `/securite`, mutation protégée par origine, CSRF et identité. Après connexion, accès direct à l’administration pour un administrateur et au tableau de bord pour un établissement validé, en conservant la priorité des filtres de recherche.
+- Nouveau layout Hono JSX commun à l’entreprise et la sécurité : navigation bleu nuit, actions dorées, fond chaud, logo et typographie hérités de l’accueil. Les pages de connexion et d’A2F reprennent une composition photographique en arche. Navigation mobile horizontale avec destination active visible et déconnexion accessible. Aucun établissement ou résultat inventé dans l’application.
+- Vérifications : typecheck et build, 14 tests PostgreSQL/unitaires réussis, dont navigateur mémorisé/nouveau, cookie falsifié, expiration et révocation. Chromium : 7 pages à 1440 et 390 px sans débordement horizontal ni erreur JavaScript, captures inspectées ; case de confiance et opt-out, erreur de code/réessai et déconnexion mobile vérifiés dans le navigateur. Les captures utilisent uniquement des états locaux de recette, pas des comptes de production.

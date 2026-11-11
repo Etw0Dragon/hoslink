@@ -32,12 +32,15 @@ for (const form of document.querySelectorAll<HTMLFormElement>("form")) {
   if (!action) continue;
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) return;
+    status.textContent = "";
     const data = Object.fromEntries(new FormData(form)) as Record<
         string,
         string
       >,
       button = form.querySelector("button");
     if (button) button.disabled = true;
+    form.setAttribute("aria-busy", "true");
     try {
       let result: any;
       const next = "/apres-connexion";
@@ -111,12 +114,18 @@ for (const form of document.querySelectorAll<HTMLFormElement>("form")) {
           break;
         case "verify-enrollment":
         case "totp":
-          result = await client.twoFactor.verifyTotp({ code: data.code });
+          result = await client.twoFactor.verifyTotp({
+            code: data.code,
+            trustDevice: action === "totp" && data.trustDevice === "true",
+          });
           if (!result.error)
             location.assign(action === "totp" ? next : "/securite");
           break;
         case "backup":
-          result = await client.twoFactor.verifyBackupCode({ code: data.code });
+          result = await client.twoFactor.verifyBackupCode({
+            code: data.code,
+            trustDevice: data.trustDevice === "true",
+          });
           if (!result.error) location.assign(next);
           break;
         case "disable":
