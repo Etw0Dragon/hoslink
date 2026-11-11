@@ -1,5 +1,6 @@
-// Native forms remain fully functional without JavaScript.
+// Business forms use native submission; authentication is handled by Better Auth.
 document.addEventListener("submit", (event) => {
+  if (event.defaultPrevented) return;
   const form = event.target;
   if (!(form instanceof HTMLFormElement) || form.method !== "post") return;
   if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) {

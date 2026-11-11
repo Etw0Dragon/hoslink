@@ -62,6 +62,9 @@ Les contrôles restent natifs, avec labels visibles, focus explicite, lien d’�
 - Accueil : `web/static/landing.css`, chargé uniquement pour cette page.
 - Templates : `web/templates/`, composants communs `listing.html` et `icons.html`.
 - Les URL CSS/JS sont versionnées pour renouveler le cache lors de cette refonte.
-- Les médias et templates sont embarqués dans le binaire Go : redémarrer le serveur ou reconstruire l’image Docker après modification.
+- Les composants Hono JSX rendent le HTML côté serveur ; les médias restent locaux. Recompiler le TypeScript et reconstruire l’image Docker après modification.
 
 Tests de rendu, accès privé, filtres, médias et lecture partielle du MP4 exécutés ; syntaxe JavaScript, formatage, compilation et analyse Go vérifiés. La recette PostgreSQL et le parcours complet avec connexion restent soumis à un environnement autorisant la base. Firefox headless termine toujours avec le code 139 : aucune validation visuelle sur ordinateur/mobile n’est revendiquée. La capture HTML locale préparée sert uniquement à la recette, pas de preuve de rendu validé.
+
+
+Migration TypeScript du 11 novembre 2026 : les validations Go historiques ci-dessus ne valident pas le nouveau runtime. La recette visuelle et fonctionnelle Hono reste à exécuter ; voir `.agent/ROADMAP.md`.

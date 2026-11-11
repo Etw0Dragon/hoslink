@@ -1,0 +1,37 @@
+{
+  "name": "hoslink",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file=.env.node src/server.ts",
+    "build": "tsc && esbuild src/browser/auth.ts --bundle --format=esm --outfile=web/static/auth.js",
+    "start": "node --env-file-if-exists=.env.node dist/server.js",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "migrate": "tsx --env-file=.env.node src/db/migrate.ts",
+    "admin": "tsx --env-file=.env.node src/admin.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "test:integration": "tsx --test tests/integration.test.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.7",
+    "better-auth": "1.7.20",
+    "drizzle-orm": "0.45.4",
+    "hono": "4.13.18",
+    "nodemailer": "^10.5.0",
+    "pg": "^8.16.3",
+    "qrcode": "^1.5.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.15.6",
+    "@types/qrcode": "^1.5.6",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

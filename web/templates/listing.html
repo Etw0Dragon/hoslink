@@ -1,7 +1,0 @@
-{{define "listing"}}
-<article class="listing card">
-<div class="listing-art photo-listing {{.Category}}"><img src="{{template "activity-image" .Category}}" alt="" width="768" height="512" loading="lazy"><span class="illustration-label">Illustration d’activité</span><span class="category-label">{{category .Category}}</span></div>
-<div class="listing-content"><span class="verified-inline">{{template "shield-icon"}} Professionnel validé</span><div class="location">{{.Station}}{{if and .Station .City}} · {{end}}{{.City}}</div><h2><a href="/etablissements/{{.ID}}">{{.Name}}</a></h2><p>{{if .Description}}{{.Description}}{{else}}Présentation à compléter. Consultez la fiche pour contacter ce professionnel.{{end}}</p><a class="text-link" href="/etablissements/{{.ID}}">Voir la fiche et échanger {{template "arrow"}}</a></div>
-</article>
-{{end}}
-{{define "activity-image"}}{{if eq . "hotel"}}/static/media/hotel.webp{{else if eq . "spa"}}/static/media/wellness.webp{{else if eq . "activite"}}/static/media/activities.webp{{else}}/static/media/hospitality.webp{{end}}{{end}}

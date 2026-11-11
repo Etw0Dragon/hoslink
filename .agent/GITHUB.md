@@ -1,3 +1,5 @@
+> Document historique Go/Pages. Depuis la décision TypeScript/Coolify du 11 novembre 2026, utiliser `docs/OPERATIONS.md`. Ne pas relancer les anciennes commandes de publication. Les réglages distants existants n’ont pas été changés par la migration.
+
 # GitHub et aperçu frontend Hoslink
 
 ## Décision du 11 novembre 2026

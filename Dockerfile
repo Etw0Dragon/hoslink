@@ -1,14 +1,23 @@
-FROM golang:1.26-alpine AS build
-WORKDIR /src
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 go build -buildvcs=false -trimpath -o /server ./cmd/server
-FROM alpine:3.23
-RUN apk add --no-cache ca-certificates && adduser -D -u 10001 app
+FROM node:24-bookworm-slim AS build
 WORKDIR /app
-COPY --from=build /server /app/server
-RUN mkdir -p /app/var/mail && chown -R app:app /app
-USER app
+COPY package*.json ./
+RUN npm ci --no-audit --no-fund
+COPY tsconfig.json ./
+COPY src ./src
+RUN npm run build && npm prune --omit=dev
+
+FROM node:24-bookworm-slim AS runtime
+ENV NODE_ENV=production PORT=8080
+WORKDIR /app
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=build --chown=node:node /app/package.json ./package.json
+COPY --chown=node:node migrations ./migrations
+COPY --chown=node:node web/static ./web/static
+COPY --from=build --chown=node:node /app/web/static/auth.js ./web/static/auth.js
+COPY --chown=node:node public/logo.png ./public/logo.png
+RUN mkdir -p var/mail && chown -R node:node var
+USER node
 EXPOSE 8080
-ENTRYPOINT ["/app/server"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s CMD node -e "fetch('http://127.0.0.1:8080/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+CMD ["node", "dist/server.js"]
