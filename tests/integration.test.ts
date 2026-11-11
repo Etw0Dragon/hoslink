@@ -211,6 +211,104 @@ test(
           );
         },
       );
+      await t.test(
+        "appareil mémorisé : reconnexion, expiration, falsification et révocation",
+        async () => {
+          await browser.api("sign-out", {});
+          assert(
+            (
+              await (
+                await browser.api("sign-in/email", { email, password })
+              ).json()
+            ).twoFactorRedirect,
+          );
+          const verification = await browser.api(
+            "two-factor/verify-backup-code",
+            { code: backupCodes[3], trustDevice: true },
+          );
+          assert.equal(verification.status, 200);
+          const trustHeader = verification.headers
+            .getSetCookie()
+            .find((cookie) => cookie.includes("trust_device="));
+          assert(trustHeader?.includes("HttpOnly"));
+          assert.match(trustHeader!, /Max-Age=2592000/i);
+          assert.match(trustHeader!, /SameSite=Lax/i);
+          const trustedCookie = [...browser.jar].find(([name]) =>
+            name.endsWith("trust_device"),
+          )!;
+          assert(trustedCookie);
+          await browser.api("sign-out", {});
+          assert(
+            !(
+              await (
+                await browser.api("sign-in/email", { email, password })
+              ).json()
+            ).twoFactorRedirect,
+          );
+          assert.equal((await browser.request("/administration")).status, 200);
+          const newcomer = new Browser();
+          assert(
+            (
+              await (
+                await newcomer.api("sign-in/email", { email, password })
+              ).json()
+            ).twoFactorRedirect,
+          );
+          const tampered = new Browser();
+          tampered.jar.set(trustedCookie[0], trustedCookie[1] + "invalid");
+          assert(
+            (
+              await (
+                await tampered.api("sign-in/email", { email, password })
+              ).json()
+            ).twoFactorRedirect,
+          );
+          await pool.query(
+            "UPDATE auth_verification SET expires_at=now()-interval '1 minute' WHERE value=(SELECT auth_user_id FROM profiles WHERE id=$1) AND identifier LIKE 'trust-device-%'",
+            [uid],
+          );
+          await browser.api("sign-out", {});
+          assert(
+            (
+              await (
+                await browser.api("sign-in/email", { email, password })
+              ).json()
+            ).twoFactorRedirect,
+          );
+          assert.equal(
+            (
+              await browser.api("two-factor/verify-backup-code", {
+                code: backupCodes[4],
+                trustDevice: true,
+              })
+            ).status,
+            200,
+          );
+          await browser.request("/securite");
+          assert.equal(
+            (await browser.request("/securite/appareils/revoquer", {})).status,
+            303,
+          );
+          assert.equal((await browser.request("/administration")).status, 200);
+          await browser.api("sign-out", {});
+          assert(
+            (
+              await (
+                await browser.api("sign-in/email", { email, password })
+              ).json()
+            ).twoFactorRedirect,
+          );
+          assert.equal(
+            (
+              await browser.api("two-factor/verify-backup-code", {
+                code: backupCodes[5],
+                trustDevice: true,
+              })
+            ).status,
+            200,
+          );
+        },
+      );
       const est = async (name: string) => {
         const n = String(Math.floor(Math.random() * 1e9)).padStart(9, "0");
         const company = (

@@ -1,5 +1,6 @@
 // Converted from the original HTML templates; interpolation is escaped by Hono.
 import { html } from "hono/html";
+import { Workspace, AccessLayout } from "./workspace.js";
 export type ViewData = Record<string, any>;
 const truth = (v: any) => (Array.isArray(v) ? v.length > 0 : !!v);
 const category = (v: string) =>
@@ -1593,7 +1594,20 @@ views["team"] = (d, p) =>
         : html``
     }`;
 export function Layout({ page }: { page: ViewData }) {
-  return <>{views.layout(page, page)}</>;
+  if (page.Page === "home") return <>{views.layout(page, page)}</>;
+  const content = (views[page.Page] || views.auth)(page, page);
+  if (!page.User)
+    return <AccessLayout title={page.Title}>{content}</AccessLayout>;
+  return (
+    <Workspace
+      title={page.Title}
+      current={page.Page}
+      user={page.User}
+      csrf={page.CSRF}
+    >
+      {content}
+    </Workspace>
+  );
 }
 export function renderPage(data: ViewData) {
   const page = {

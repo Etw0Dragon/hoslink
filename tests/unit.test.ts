@@ -62,3 +62,34 @@ test("rendu des pages : médias, échappement et actions selon rôle", async () 
   }).toString();
   assert(!member.includes('action="/partenariats"'));
 });
+
+test("sécurité : navigation, appareil mémorisé et accès administrateur visibles", async () => {
+  const { Security, Challenge } = await import("../src/views/security.js");
+  const user = {
+    ID: 1,
+    AuthID: "test",
+    Name: "Responsable",
+    Email: "test@example.test",
+    Verified: true,
+    Admin: true,
+    TwoFactor: true,
+    EstID: 0,
+    EstName: "",
+    Status: "",
+    Role: "",
+  };
+  const security = await Security({
+    enabled: true,
+    admin: true,
+    csrf: "test",
+    user,
+  }).toString();
+  assert(security.includes('href="/administration"'));
+  assert(security.includes('action="/securite/appareils/revoquer"'));
+  assert(security.includes("workspace.css"));
+  assert(security.includes('aria-current="page"'));
+  const challenge = await Challenge().toString();
+  assert(challenge.includes('name="trustDevice"'));
+  assert(challenge.includes("30 jours"));
+  assert(challenge.includes("/public/logo.png"));
+});

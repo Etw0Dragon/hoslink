@@ -68,3 +68,11 @@ Tests de rendu, accès privé, filtres, médias et lecture partielle du MP4 exé
 
 
 Migration TypeScript du 11 novembre 2026 : les validations Go historiques ci-dessus ne valident pas le nouveau runtime. La recette visuelle et fonctionnelle Hono reste à exécuter ; voir `.agent/ROADMAP.md`.
+
+## Espace professionnel Hoslink — 11 novembre 2026
+
+L’accueil bleu nuit/or constitue la référence actuelle et remplace les anciens jetons bleu/gris décrits dans l’historique. L’espace entreprise étend cette identité : navigation `#0c2635`, surfaces `#f8f5ef` et blanc, encre `#102c3c`, actions dorées `#e9bd7e`, or textuel `#80551d`, séparateurs `#e1ddd5`. Police locale Hoslink Sans pour les tâches et Georgia pour les grands titres, comme sur l’accueil. Les boutons principaux sont arrondis, les panneaux limités à 14 px et sans ombre décorative. SVG de navigation de même épaisseur ; états métier nommés et contrastés.
+
+`src/views/workspace.tsx` porte les layouts JSX Workspace et AccessLayout. `web/static/workspace.css` s’applique aux pages professionnelles et d’accès après les styles communs. L’accueil conserve son layout et ses médias. La page de sécurité utilise la navigation professionnelle, propose un accès direct à l’administration et sépare authentification, appareils mémorisés et sessions. L’A2F et la connexion utilisent un panneau photographique en arche sur ordinateur et un en-tête compact sur mobile. Sous 760 px, la navigation professionnelle défile horizontalement jusqu’à l’entrée active et la déconnexion reste disponible dans la barre supérieure.
+
+Revue Chromium réalisée à 1440 × 1000 et 390 × 844 sur sécurité, activation A2F, confirmation A2F, connexion, établissement, annuaire et tableau de bord. Les formulaires sont testés en erreur et après correction ; les cookies de confiance font l’objet de tests PostgreSQL réels.

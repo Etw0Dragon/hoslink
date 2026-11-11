@@ -159,6 +159,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
   const basePrivate = [
     "/compte",
     "/securite",
+    "/securite/appareils/revoquer",
     "/etablissement",
     "/changer",
     "/invitation",
@@ -219,11 +220,20 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
     c.html(
       <Security
         csrf={c.get("csrf")}
+        user={c.get("user")!}
+        forgotten={c.req.query("appareils") === "revoques"}
         enabled={c.get("user")!.TwoFactor}
         admin={c.get("user")!.Admin}
       />,
     ),
   );
+  app.post("/securite/appareils/revoquer", async (c) => {
+    await pool.query(
+      "DELETE FROM auth_verification WHERE value=$1 AND identifier LIKE 'trust-device-%'",
+      [c.get("user")!.AuthID],
+    );
+    return c.redirect("/securite?appareils=revoques", 303);
+  });
   app.get("/apres-connexion", (c) => {
     const cookie = getCookie(c, "directory_search");
     if (cookie && c.get("user")!.Status === "approved") {
@@ -231,7 +241,14 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
       setCookie(c, "directory_search", "", { path: "/", maxAge: 0 });
       return c.redirect(`/annuaire?${f}`, 303);
     }
-    return c.redirect("/compte", 303);
+    return c.redirect(
+      c.get("user")!.Admin
+        ? "/administration"
+        : c.get("user")!.Status === "approved"
+          ? "/tableau-de-bord"
+          : "/compte",
+      303,
+    );
   });
   const handler = pageHandlers(pool);
   const routes = {

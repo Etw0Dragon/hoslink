@@ -31,3 +31,11 @@ window.addEventListener("pageshow", () => {
     });
   });
 });
+
+// Keep the current destination visible in the horizontal mobile navigation.
+if (window.matchMedia("(max-width: 760px)").matches) {
+  const nav = document.querySelector(".enterprise .sidebar nav");
+  const active = nav?.querySelector('[aria-current="page"]');
+  if (nav && active)
+    nav.scrollLeft = Math.max(0, active.offsetLeft - nav.offsetLeft - 20);
+}
