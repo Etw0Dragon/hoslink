@@ -127,3 +127,9 @@ Les commits frontend deviennent visibles après push/fusion sur `main` et succè
 ## Application GitHub après full access — 11 novembre 2026
 
 Le porteur a explicitement autorisé l’exécution de la configuration préparée. Le dépôt distant est vérifié public et sans références Git ; aucun changement de visibilité n’est nécessaire. L’accès SSH et le réseau fonctionnent ; initialisation d’un historique local `main` autorisée dans ce répertoire sans `.git`. La base PostgreSQL de développement existante est accessible : les trois tests d’intégration passent. La connexion GitHub CLI officielle a été validée et les branches `main` et `backend` poussées. La configuration du pilote impose PR et CI ; l’approbation tierce est optionnelle tant qu’aucune collaboratrice habilitée n’est configurée.
+
+La configuration GitHub a ensuite été appliquée et vérifiée : aperçu HTTPS publié sur https://etw0dragon.github.io/hoslink/, branches protégées, environnement Pages limité à `main` et CI PostgreSQL réussie sur GitHub. Aucun backend n’est hébergé. Les procédures reproductibles et preuves sont dans `.agent/GITHUB.md`.
+
+## Domaine de l’aperçu — décision du 11 novembre 2026
+
+Le porteur choisit `hoslink.tmfolio.site` et configure le CNAME DNS vers GitHub Pages. Ce domaine devient l’URL canonique de l’aperçu statique : https://hoslink.tmfolio.site/. Le site doit être généré à la racine, sans préfixe `/hoslink/`. Domaine enregistré dans Pages, certificat approuvé, HTTPS imposé et ressources vérifiées. `CNAME` et le script conservent ce choix ; le workflow valide le domaine avant publication. Cela ne change pas le domaine du futur backend ni ses autorisations.

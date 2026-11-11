@@ -4,6 +4,8 @@ Nom de travail d’une plateforme B2B privée entre hôtels et prestataires loca
 
 ## Aperçu frontend sur GitHub Pages
 
+Aperçu en ligne : **https://hoslink.tmfolio.site/**.
+
 Dépôt : `git@github.com:Etw0Dragon/hoslink.git`. `main` publie uniquement l’export statique ; `backend` sert au travail sur l’application complète, sans hébergement backend automatique. Les mêmes templates servent aux deux modes. L’aperçu permet de parcourir les pages sans compte ni base ; les formulaires sont désactivés.
 
 La procédure complète, les branches, la CI PostgreSQL, les réglages GitHub, les limites de gratuité et le suivi sont documentés dans [.agent/GITHUB.md](.agent/GITHUB.md). L’état de la configuration distante et les vérifications effectuées sont consignés dans `.agent/ROADMAP.md`.

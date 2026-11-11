@@ -107,3 +107,19 @@ Nom visible remplacé par Hoslink dans les pages, métadonnées et sous-titres. 
 
 - Premier commit `a90730b` poussé sur `main` et `backend` sans force push. Connexion GitHub CLI confirmée au compte Etw0Dragon. Actionlint valide les workflows. Secrets locaux exclus du commit après contrôle des valeurs sensibles.
 - Pour éviter un verrouillage sans second relecteur, le script applique par défaut zéro approbation tierce obligatoire, avec PR/CI requises. `HOSLINK_REQUIRED_APPROVALS=1` permet d’exiger une approbation une fois la collaboratrice habilitée.
+
+## GitHub et Pages activés — 11 novembre 2026
+
+- `main` et `backend` existent sur le dépôt public. Pages configuré avec GitHub Actions, HTTPS imposé, environnement limité à la branche `main`. URL vérifiée : https://etw0dragon.github.io/hoslink/.
+- Publication Pages réussie : https://github.com/Etw0Dragon/hoslink/actions/runs/43016395074. CI complète Go/PostgreSQL réussie : https://github.com/Etw0Dragon/hoslink/actions/runs/43016417032.
+- Vérification publique : 21 pages et ressources répondent HTTP 200 ; formulaires absents des pages de démonstration. `.env`, `internal/app/app.go` et `public/embed.go` répondent 404.
+- Protections réellement appliquées sur les deux branches : PR, CI `Go and PostgreSQL`, branche à jour, historique linéaire, discussions résolues, pas de force push ni suppression, administrateurs inclus. Approbation tierce optionnelle tant qu’aucun second relecteur habilité n’est défini.
+- Permissions Actions par défaut en lecture, approbation de PR par Actions désactivée. Lien public ajouté à la présentation GitHub. GitHub CLI vérifié installé dans `~/.local/bin/gh`, aucune dépendance à un exécutable temporaire après redémarrage.
+- Cette activation remplace les anciens blocages Git/réseau décrits plus haut. Aucun secret publié, aucun coût backend engagé, aucun service métier ouvert en production.
+
+## Domaine personnalisé et correction du préfixe — 11 novembre 2026
+
+- Domaine demandé : https://hoslink.tmfolio.site/. CNAME DNS vérifié vers `etw0dragon.github.io`. Pages configuré avec ce domaine ; certificat approuvé et HTTPS imposé. HTTP redirige correctement vers HTTPS.
+- Relance Pages après changement de domaine : génération avec `base_path` vide. Les liens HTML ne contiennent plus `/hoslink/static/` ni `/hoslink/public/`. Vérification de 21 pages et ressources : HTTP 200 sur le nouveau domaine, sans formulaires actifs.
+- Domaine canonique consigné dans `CNAME`, utilisé par le script et contrôlé par le workflow contre `configure-pages.outputs.host`. Configuration Actions et documentation actualisées ; le fichier CNAME seul ne remplace pas le réglage Pages API.
+- Contrôles de fusion : les validations manuelles, même réussies, ne satisfont pas la règle GitHub. Relance de la PR via fermeture/réouverture pour obtenir un véritable événement `pull_request`. Aucune protection désactivée ni fusion administrateur forcée.

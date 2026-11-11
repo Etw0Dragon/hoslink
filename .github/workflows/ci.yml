@@ -1,6 +1,6 @@
 name: CI
 
-on:
+"on":
   push:
     branches: [main, backend]
   pull_request:
@@ -58,7 +58,9 @@ jobs:
       - name: Check JavaScript syntax
         run: node --check web/static/app.js
       - name: Build static preview
-        run: go run ./cmd/preview -out dist -base-path /hoslink
+        run: |
+          go run ./cmd/preview -out dist -base-path /hoslink
+          cp CNAME dist/CNAME
       - name: Store preview for pull request review
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
