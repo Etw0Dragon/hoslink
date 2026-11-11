@@ -74,3 +74,7 @@ Dans **Domains**, ajouter HTTPS, hôte `hoslink.tmfolio.site`, service **app**, 
 Chez le fournisseur DNS, remplacer le CNAME `hoslink` vers GitHub Pages par un enregistrement **A** `hoslink` vers l’IPv4 publique du serveur. Ne conserver un AAAA que si l’IPv6 du serveur est configurée. Les ports entrants 80/443 doivent atteindre le proxy Coolify. Déployer et consulter les logs : PostgreSQL prêt, `migrate` terminé avec code 0, `app` sain. Vérifier `https://hoslink.tmfolio.site/healthz`, puis créer et confirmer un compte avec le SMTP configuré.
 
 Documentation officielle consultée : https://coolify.io/docs/applications/configuration/general et https://coolify.io/docs/core/networking/domains.
+
+### Échec de compilation `tsc: not found` / code 127
+
+Coolify peut injecter `NODE_ENV=production` pendant la construction. Le Dockerfile utilise explicitement `npm ci --include=dev` dans l’étape de compilation, puis retire les dépendances de développement avant l’image finale. Garder `NODE_ENV=production` pour l’exécution. Dans Coolify, les secrets SMTP, base et Better Auth sont des variables d’exécution : désactiver leur option Build Variable. `requireTLS` n’est pas une variable séparée ; `?requireTLS=true` fait partie de la même ligne `SMTP_URL` avec le port 587.

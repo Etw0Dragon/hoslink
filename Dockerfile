@@ -1,7 +1,9 @@
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --no-audit --no-fund
+# Coolify may inject NODE_ENV=production as a build argument.
+# The compiler and browser bundler are still required in this stage.
+RUN npm ci --include=dev --no-audit --no-fund
 COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build && npm prune --omit=dev
