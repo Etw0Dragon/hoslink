@@ -3,7 +3,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
   const c = z
     .object({
       NODE_ENV: z
-        .enum(["development", "test", "production"])
+        .enum(["development", "test", "production", "test-prod"])
         .default("development"),
       DATABASE_URL: z.string().url(),
       BASE_URL: z.string().url().default("http://localhost:8080"),
@@ -33,7 +33,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
   if (c.SMTP_URL && !["smtp:", "smtps:"].includes(new URL(c.SMTP_URL).protocol))
     throw new Error("SMTP_URL doit être une URL SMTP(S)");
   if (
-    c.NODE_ENV === "production" &&
+    ["production", "test-prod"].includes(c.NODE_ENV) &&
     (!c.BASE_URL.startsWith("https://") || !c.SMTP_URL)
   )
     throw new Error("HTTPS et SMTP_URL obligatoires en production");
