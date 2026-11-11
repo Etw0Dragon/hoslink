@@ -35,7 +35,8 @@ if ! git show-ref --verify --quiet refs/heads/backend; then
   fi
 fi
 git push --set-upstream origin main backend
-gh repo edit "$repo" --default-branch main --delete-branch-on-merge --enable-squash-merge --enable-rebase-merge --enable-merge-commit=false
+gh repo edit "$repo" --default-branch main --delete-branch-on-merge --enable-squash-merge --enable-rebase-merge --enable-merge-commit=false --homepage https://etw0dragon.github.io/hoslink/
+gh api --method PUT "repos/$repo/actions/permissions/workflow" -f default_workflow_permissions=read -F can_approve_pull_request_reviews=false >/dev/null
 
 scratch=$(mktemp -d)
 trap 'rm -rf "$scratch"' EXIT HUP INT TERM

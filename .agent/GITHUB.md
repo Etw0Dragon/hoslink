@@ -24,7 +24,7 @@ Le générateur est `cmd/preview`, sa logique est dans `internal/preview`. Le re
 
 ## Ce que la collaboratrice voit
 
-URL attendue après activation et succès du workflow : **https://etw0dragon.github.io/hoslink/**.
+URL de l’aperçu : **https://etw0dragon.github.io/hoslink/**. Le résultat vérifié du déploiement est consigné dans `ROADMAP.md`.
 
 Accueil et présentation, connexion, inscription, récupération d’accès, recherche, informations, puis vues vides du tableau de bord, annuaire, partenariats, messages, établissement, équipe et offres. Le lien « Explorer l’interface » du bandeau ouvre le tableau de bord.
 
@@ -42,7 +42,7 @@ L’aperçu est public et porte `noindex,nofollow`, ce qui demande aux moteurs d
 4. Génération de `dist/`, réécriture des URL HTML et utilisation d’URL CSS relatives.
 5. Publication de cet artefact uniquement par `deploy-pages`, dans l’environnement `github-pages`.
 
-Le build lit le dépôt ; seul le job de publication reçoit `pages: write` et `id-token: write`. Aucun PAT ni secret serveur nécessaire. Les déploiements sont sérialisés et ne s’annulent pas pendant une publication. Les permissions persistantes du checkout sont désactivées.
+Les permissions Actions par défaut du dépôt sont limitées à la lecture et l’approbation de PR par Actions est désactivée. Le build lit le dépôt ; seul le job de publication reçoit `pages: write` et `id-token: write`. Aucun PAT ni secret serveur nécessaire. Les déploiements sont sérialisés et ne s’annulent pas pendant une publication. Les permissions persistantes du checkout sont désactivées.
 
 ### `CI` — `.github/workflows/ci.yml`
 
@@ -56,11 +56,11 @@ Dependabot vérifie les modules Go et les actions chaque semaine ; ses mises à 
 
 Les images PostgreSQL suivent `18-alpine`, comme le développement local ; une validation de digest est une amélioration possible, pas effectuée.
 
-## Mise en place depuis le vrai terminal local
+## Configuration et reproduction depuis un terminal local
 
 ### État particulier de cette session
 
-La première session exposait `.git` vide et en lecture seule, avec réseau bloqué. Le porteur a ensuite accordé le full access et demandé l’application des changements. Le dépôt distant a été vérifié public et sans référence Git ; le répertoire local ne contenait aucun historique. Un dépôt `main` a donc été initialisé sans écraser d’historique, avec `origin` pointant sur le dépôt confirmé. La connexion SSH fonctionne ; les réglages API nécessitent la validation GitHub CLI par le porteur. L’état effectivement appliqué est consigné dans `ROADMAP.md`. Les anciennes limitations restent un historique, pas une description du nouvel environnement.
+La première session exposait `.git` vide et en lecture seule, avec réseau bloqué. Le porteur a ensuite accordé le full access et demandé l’application des changements. Le dépôt distant a été vérifié public et sans référence Git ; le répertoire local ne contenait aucun historique. Un dépôt `main` a donc été initialisé sans écraser d’historique, avec `origin` pointant sur le dépôt confirmé. La connexion SSH fonctionne et l’authentification officielle GitHub CLI au compte Etw0Dragon a réussi. `main` et `backend` sont poussées ; Pages, les protections et l’environnement sont configurés. L’état effectivement appliqué est consigné dans `ROADMAP.md`. Les anciennes limitations restent un historique, pas une description du nouvel environnement.
 
 ### Prérequis
 
@@ -171,3 +171,15 @@ Aucun service payant, hébergement backend, domaine, secret de paiement ni produ
 - [API des protections de branches](https://docs.github.com/en/rest/branches/branch-protection)
 - [API des politiques de déploiement](https://docs.github.com/en/rest/deployments/branch-policies)
 - [Options de configuration du dépôt avec GitHub CLI](https://cli.github.com/manual/gh_repo_edit)
+
+## État vérifié après activation — 11 novembre 2026
+
+- Dépôt public, branches `main` et `backend` poussées ; `main` par défaut.
+- Aperçu publié et accessible : https://etw0dragon.github.io/hoslink/. HTTPS imposé, source GitHub Actions, environnement limité à `main`.
+- [Première publication Pages réussie](https://github.com/Etw0Dragon/hoslink/actions/runs/43016395074).
+- [CI complète PostgreSQL réussie sur GitHub](https://github.com/Etw0Dragon/hoslink/actions/runs/43016417032), en plus de la recette PostgreSQL locale.
+- Protections appliquées à `main` et `backend` : PR et contrôle `Go and PostgreSQL`, historique linéaire, discussions résolues, aucun force push ni suppression, administrateurs inclus ; zéro approbation tierce obligatoire au pilote.
+- Permissions Actions par défaut en lecture, approbation de PR par Actions désactivée. Actions épinglées par SHA. Lien du site renseigné dans la présentation du dépôt.
+- Vérification HTTP : 21 pages/ressources répondent 200, formulaires absents des pages publiées ; `.env`, sources serveur et fichier Go du logo répondent 404.
+- GitHub CLI installé dans `~/.local/bin/gh` à partir de l’archive officielle vérifiée ; authentification locale hors dépôt. Aucun jeton committé.
+- Aucun backend hébergé et aucune production métier ouverte. La documentation historique indiquant un blocage décrit la session antérieure, pas cet état vérifié.
