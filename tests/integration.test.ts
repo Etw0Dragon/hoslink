@@ -51,6 +51,7 @@ test(
         app = createApp(pool, auth, cfg),
         password = "Une phrase de passe 2026!";
       class Browser {
+        constructor(private target = app) {}
         jar = new Map<string, string>();
         csrf = "";
         async request(
@@ -74,7 +75,7 @@ test(
                   string
                 >).toString();
           }
-          const r = await app.request(cfg.BASE_URL + path, {
+          const r = await this.target.request(cfg.BASE_URL + path, {
             method: body ? "POST" : "GET",
             headers,
             body: payload,
@@ -309,6 +310,23 @@ test(
           );
         },
       );
+      await t.test("création en recette : deux entreprises distinctes et protection du SIREN", async () => {
+        const testApp = createApp(pool, auth, {...cfg, NODE_ENV: "test-prod"});
+        const first = new Browser(testApp); first.jar = new Map(browser.jar); await first.request("/compte");
+        const suffix = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
+        const a = `31${suffix}`, b = `32${suffix}`;
+        const form = {company:"Entreprise de recette",name:"Établissement",category:"hotel",station:"Paris",city:"Paris",address:"Rue de recette"};
+        assert.equal((await first.request("/etablissement", {...form,siret:a+"00001"})).status,303);
+        const other = new Browser(testApp), otherEmail = `${randomUUID()}@example.test`;
+        assert.equal((await other.api("sign-up/email", {name:"Prestataire",email:otherEmail,password})).status,200);
+        await pool.query("UPDATE auth_user SET email_verified=true WHERE email=$1", [otherEmail]);
+        assert.equal((await other.api("sign-in/email", {email:otherEmail,password})).status,200);
+        await other.request("/compte");
+        const collision=await other.request("/etablissement", {...form,category:"spa",siret:a+"00002"});
+        assert.equal(collision.status,409); assert.match(await collision.text(),/9 premiers chiffres/);
+        assert.equal((await other.request("/etablissement", {...form,category:"spa",siret:b+"00001"})).status,303);
+        assert.equal((await pool.query("SELECT status FROM establishments WHERE siret=$1",[b+"00001"])).rows[0].status,"approved");
+      });
       const est = async (name: string) => {
         const n = String(Math.floor(Math.random() * 1e9)).padStart(9, "0");
         const company = (

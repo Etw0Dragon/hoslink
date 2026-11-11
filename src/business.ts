@@ -55,7 +55,7 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
         )
           reject(
             409,
-            "Entreprise déjà enregistrée. Demandez une invitation ou un rattachement administratif.",
+            "Cette entreprise est déjà enregistrée : les 9 premiers chiffres du SIRET (SIREN) sont identiques. Demandez une invitation ou un rattachement administratif. Pour une autre entreprise, utilisez un SIRET avec un SIREN différent.",
           );
       } else
         company = (

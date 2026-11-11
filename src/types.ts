@@ -9,6 +9,7 @@ export interface Identity {
   TwoFactor: boolean;
   EstID: number;
   EstName: string;
+  EstCategory?: string;
   Status: string;
   Role: string;
 }
