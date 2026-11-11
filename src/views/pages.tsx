@@ -31,6 +31,7 @@ views["account"] = (d, p) =>
         <h1>Mon établissement.</h1>
         <p>
           Votre présence dans le réseau et les informations de votre structure.
+          ${truth(d.TestProd) ? html`<strong>Mode de recette : les nouveaux établissements sont validés automatiquement.</strong>` : html``}
         </p>
       </div>
     </div>

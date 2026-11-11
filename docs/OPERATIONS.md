@@ -86,3 +86,8 @@ Après déploiement, à la prochaine connexion demandant Authenticator, laisser 
 La page Sécurité permet de révoquer tous les appareils mémorisés sans fermer la session courante ; le prochain accès par mot de passe exigera l’A2F. La récupération du mot de passe révoque sessions et appareils de confiance. Les sessions et appareils disposent de commandes distinctes. Aucun changement de variables ni migration SQL supplémentaire n’est nécessaire.
 
 Référence : https://better-auth.com/docs/plugins/2fa#trusted-devices.
+
+
+### Mode de recette sur la base actuelle
+
+Dans Coolify, définir `NODE_ENV=test-prod` puis redéployer. HTTPS, SMTP, vérification email, A2F administrateur et cookies sécurisés restent requis. Les nouveaux établissements avec un SIRET unique de 14 chiffres sont validés automatiquement ; la validation est journalisée. Les fausses données sont enregistrées dans la base actuelle. Revenir à `NODE_ENV=production` puis redéployer pour rétablir les contrôles normaux ; les données et validations de test restent présentes et nécessitent un nettoyage explicite.

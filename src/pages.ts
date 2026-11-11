@@ -58,6 +58,7 @@ export const page = (
       Page,
       Title: titles[Page] || "Votre espace professionnel",
       User: c.get("user"),
+      TestProd: process.env.NODE_ENV === "test-prod",
       CSRF: c.get("csrf"),
       ...data,
     }),

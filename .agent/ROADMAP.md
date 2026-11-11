@@ -150,3 +150,7 @@ Dépendances Node HTTP, SMTP et esbuild mises à jour après audit : zéro vuln�
 - Révocation des appareils depuis `/securite`, mutation protégée par origine, CSRF et identité. Après connexion, accès direct à l’administration pour un administrateur et au tableau de bord pour un établissement validé, en conservant la priorité des filtres de recherche.
 - Nouveau layout Hono JSX commun à l’entreprise et la sécurité : navigation bleu nuit, actions dorées, fond chaud, logo et typographie hérités de l’accueil. Les pages de connexion et d’A2F reprennent une composition photographique en arche. Navigation mobile horizontale avec destination active visible et déconnexion accessible. Aucun établissement ou résultat inventé dans l’application.
 - Vérifications : typecheck et build, 14 tests PostgreSQL/unitaires réussis, dont navigateur mémorisé/nouveau, cookie falsifié, expiration et révocation. Chromium : 7 pages à 1440 et 390 px sans débordement horizontal ni erreur JavaScript, captures inspectées ; case de confiance et opt-out, erreur de code/réessai et déconnexion mobile vérifiés dans le navigateur. Les captures utilisent uniquement des états locaux de recette, pas des comptes de production.
+
+## Mode test-prod
+
+`NODE_ENV=test-prod` conserve HTTPS, SMTP, les cookies sécurisés, l’email vérifié et l’A2F administrateur ; les nouveaux établissements avec SIRET unique à 14 chiffres sont validés automatiquement et inscrits au journal. La base actuelle conserve les données de recette après retour en production. Voir docs/OPERATIONS.md.

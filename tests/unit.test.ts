@@ -93,3 +93,9 @@ test("sécurité : navigation, appareil mémorisé et accès administrateur visi
   assert(challenge.includes("30 jours"));
   assert(challenge.includes("/public/logo.png"));
 });
+test("test-prod exige HTTPS et SMTP comme la production", () => {
+  const env = { NODE_ENV: "test-prod", DATABASE_URL: "postgres://a:b@localhost/hoslink_node", BETTER_AUTH_SECRET: "x".repeat(40) };
+  assert.throws(() => readConfig(env));
+  assert.throws(() => readConfig({...env, BASE_URL: "https://hoslink.tmfolio.site"}));
+  assert.equal(readConfig({...env, BASE_URL: "https://hoslink.tmfolio.site", SMTP_URL: "smtp://localhost:1025"}).NODE_ENV, "test-prod");
+});

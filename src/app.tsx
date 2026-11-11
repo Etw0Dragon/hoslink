@@ -66,7 +66,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
       setCookie(c, "hoslink_csrf", csrf, {
         path: "/",
         httpOnly: true,
-        secure: cfg.NODE_ENV === "production",
+        secure: ["production", "test-prod"].includes(cfg.NODE_ENV),
         sameSite: "Lax",
         maxAge: 86400,
       });
@@ -134,7 +134,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
     setCookie(c, "directory_search", f.toString(), {
       path: "/",
       httpOnly: true,
-      secure: cfg.NODE_ENV === "production",
+      secure: ["production", "test-prod"].includes(cfg.NODE_ENV),
       sameSite: "Lax",
       maxAge: 1800,
     });

@@ -46,7 +46,7 @@ export function createAuth(c: Config, db: ReturnType<typeof database>["db"]) {
         send(user.email, "Confirmez votre adresse", url),
     },
     session: { expiresIn: 7 * 86400, cookieCache: { enabled: false } },
-    advanced: { useSecureCookies: c.NODE_ENV === "production" },
+    advanced: { useSecureCookies: ["production", "test-prod"].includes(c.NODE_ENV) },
     rateLimit: { enabled: c.NODE_ENV !== "test", window: 60, max: 100 },
     plugins: [
       twoFactor({

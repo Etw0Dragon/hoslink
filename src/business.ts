@@ -34,7 +34,7 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
       ...form,
       siret: String(form.siret || "").replaceAll(" ", ""),
     });
-    if (!validSIRET(f.siret)) reject(400, "SIRET invalide.");
+    if (cfg.NODE_ENV !== "test-prod" && !validSIRET(f.siret)) reject(400, "SIRET invalide.");
     await transaction(pool, async (tx) => {
       await tx.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [
         f.siret.slice(0, 9),
@@ -79,6 +79,10 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
           ],
         )
       ).rows[0];
+      if (cfg.NODE_ENV === "test-prod") {
+        await tx.query("UPDATE establishments SET status='approved' WHERE id=$1", [est.id]);
+        await tx.query("INSERT INTO audit(user_id,action,entity_id,note) VALUES($1,'approved:test-prod',$2,'Validation automatique de recette')", [u.ID, est.id]);
+      }
       await tx.query("INSERT INTO memberships VALUES($1,$2,'owner')", [
         u.ID,
         est.id,
