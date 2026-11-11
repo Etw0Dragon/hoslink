@@ -92,7 +92,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
         .onConflictDoNothing();
       const p = (
         await pool.query(
-          `SELECT p.id,p.admin,e.id AS est_id,e.name AS est_name,e.status,m.role FROM profiles p
+          `SELECT p.id,p.admin,e.id AS est_id,e.name AS est_name,e.category AS est_category,e.status,m.role FROM profiles p
  LEFT JOIN memberships m ON m.user_id=p.id AND m.establishment_id=COALESCE(p.current_establishment_id,(SELECT min(establishment_id) FROM memberships WHERE user_id=p.id))
  LEFT JOIN establishments e ON e.id=m.establishment_id WHERE p.auth_user_id=$1`,
           [session.user.id],
@@ -108,6 +108,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
         TwoFactor: !!session.user.twoFactorEnabled,
         EstID: Number(p.est_id || 0),
         EstName: p.est_name || "",
+        EstCategory: p.est_category || "",
         Status: p.status || "",
         Role: p.role || "",
       };

@@ -26,7 +26,7 @@ export const queries = {
       fields: ["ID", "Name", "Subject", "Quote", "Date"],
     },
     {
-      sql: "SELECT id,name,category,station,city,description FROM establishments WHERE status='approved' AND id<>$1 ORDER BY created_at DESC,id DESC LIMIT 3",
+      sql: "SELECT id,name,category,station,city,description FROM establishments WHERE status='approved' AND id<>$1 AND (($2='hotel' AND category<>'hotel') OR ($2<>'hotel' AND category='hotel')) ORDER BY created_at DESC,id DESC LIMIT 3",
       fields: ["ID", "Name", "Category", "Station", "City", "Description"],
     },
   ],

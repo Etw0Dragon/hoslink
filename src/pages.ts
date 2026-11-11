@@ -77,7 +77,9 @@ export function pageHandlers(pool: pg.Pool) {
         break;
       case "directory": {
         const Query = (c.req.query("q") || "").slice(0, 160),
-          Category = (c.req.query("category") || "").slice(0, 20),
+          Category = u.EstCategory === "hotel"
+            ? (["ski", "spa", "activite", "autre"].includes(c.req.query("category") || "") ? c.req.query("category")! : "prestataires")
+            : "hotel",
           Station = (c.req.query("station") || "").slice(0, 100);
         data = {
           Query,
@@ -110,7 +112,7 @@ export function pageHandlers(pool: pg.Pool) {
         data = {
           ...(await project(pool, q[0], [eid]))[0],
           Messages: await project(pool, q[1], [eid]),
-          Items: await project(pool, q[2], [eid]),
+          Items: await project(pool, q[2], [eid, u.EstCategory || ""]),
         };
         break;
       case "conversations":

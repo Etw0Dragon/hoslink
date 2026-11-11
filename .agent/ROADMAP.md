@@ -154,3 +154,7 @@ Dépendances Node HTTP, SMTP et esbuild mises à jour après audit : zéro vuln�
 ## Mode test-prod
 
 `NODE_ENV=test-prod` conserve HTTPS, SMTP, les cookies sécurisés, l’email vérifié et l’A2F administrateur ; les nouveaux établissements avec SIRET unique à 14 chiffres sont validés automatiquement et inscrits au journal. La base actuelle conserve les données de recette après retour en production. Voir docs/OPERATIONS.md.
+
+## Recherche adaptée et diagnostic de création — 11 novembre 2026
+
+La catégorie choisie lors de la création de l’établissement pilote la recherche : hôtel vers prestataires, prestataire vers hôtels, y compris les découvertes du tableau de bord. Le choix reste effectué lors de la création de l’établissement, après le compte personnel ; il n’a pas été ajouté à l’inscription Better Auth. En cas de SIREN déjà enregistré sous un autre responsable, le message explique maintenant que les neuf premiers chiffres du SIRET identifient l’entreprise et indique le parcours d’invitation. La protection reste active. Tests PostgreSQL isolés : deux entreprises aux SIREN différents peuvent être créées en test-prod ; deux SIRET de même SIREN pour des utilisateurs distincts sont refusés. Suite : 16 tests réussis, compilation et typecheck réussis. La cause du cas signalé en production reste à confirmer par son message exact.

@@ -77,7 +77,7 @@ views["account"] = (d, p) =>
               <p>
                 Vous rejoignez une structure existante ? Demandez une invitation
                 à son responsable. Le SIRET seul ne permet pas de la
-                revendiquer.
+                revendiquer. Les 9 premiers chiffres identifient l’entreprise : deux SIRET différents peuvent donc appartenir à la même entreprise.
               </p>
               <form action="/etablissement" method="post">
                 ${views["csrf"](d, p)}
@@ -99,7 +99,7 @@ views["account"] = (d, p) =>
                       pattern="[0-9 ]{14,20}"
                       inputmode="numeric" /></label
                   ><label
-                    >Activité<select name="category">
+                    >Type d’entreprise et activité<select name="category" required>
                       ${views["categories"](d, p)}
                     </select></label
                   ><label
@@ -472,10 +472,10 @@ views["dashboard"] = (d, p) => html`
 views["directory"] = (d, p) => html`
   <section class="discovery-hero"><h1>Trouvez le bon partenaire<br />ou le bon hôtel.</h1><p>Développez votre réseau et créez de nouvelles collaborations.</p>
   <form action="/annuaire" role="search" class="discovery-search">
-    <div class="discovery-tabs" aria-label="Type d’établissement"><button name="category" value="prestataires" class="${d.Category !== 'hotel' ? 'selected' : ''}">Prestataires</button><button name="category" value="hotel" class="${d.Category === 'hotel' ? 'selected' : ''}">Hôtels</button></div>
+    <div class="discovery-tabs"><span>${d.User.EstCategory === "hotel" ? "Rechercher des prestataires" : "Rechercher des hôtels"}</span></div>
     <div class="discovery-search-fields"><label>Mots-clés<input name="q" value="${d.Query || ''}" placeholder="Un nom, un service…" /></label><label>Localisation<input name="station" value="${d.Station || ''}" placeholder="Ville ou destination" /></label><button name="category" value="${d.Category || ''}">Rechercher</button></div>
-  </form><nav class="discovery-quick" aria-label="Catégories rapides">${[['hotel','Hôtels'],['ski','Location de skis'],['spa','Bien-être & spa'],['activite','Activités'],['autre','Autres services']].map(([value,label])=>html`<a href="/annuaire?category=${value}">${label}</a>`)}</nav></section>
-  <div class="discovery-content"><aside class="discovery-filters"><div class="split"><h2>Filtres</h2><a href="/annuaire">Réinitialiser</a></div><form action="/annuaire"><input type="hidden" name="q" value="${d.Query || ''}"/><label>Activité<select name="category"><option value="">Toutes les activités</option>${[['prestataires','Tous les prestataires'],['hotel','Hôtels'],['ski','Location de skis'],['spa','Spa & bien-être'],['activite','Activités'],['autre','Autres services']].map(([value,label])=>html`<option value="${value}" ${truth(d.Category===value)?html`selected`:html``}>${label}</option>`)}</select></label><label>Localisation<input name="station" value="${d.Station || ''}" placeholder="Ville ou destination"/></label><button>Appliquer les filtres</button></form></aside>
+  </form><nav class="discovery-quick" aria-label="Catégories rapides">${(d.User.EstCategory === 'hotel' ? [['ski','Location de skis'],['spa','Bien-être & spa'],['activite','Activités'],['autre','Autres services']] : []).map(([value,label])=>html`<a href="/annuaire?category=${value}">${label}</a>`)}</nav></section>
+  <div class="discovery-content"><aside class="discovery-filters"><div class="split"><h2>Filtres</h2><a href="/annuaire">Réinitialiser</a></div><form action="/annuaire"><input type="hidden" name="q" value="${d.Query || ''}"/><label>Type d’entreprise et activité<select name="category" required><option value="">Toutes les activités</option>${(d.User.EstCategory === 'hotel' ? [['prestataires','Tous les prestataires'],['ski','Location de skis'],['spa','Spa & bien-être'],['activite','Activités'],['autre','Autres services']] : [['hotel','Hôtels']]).map(([value,label])=>html`<option value="${value}" ${truth(d.Category===value)?html`selected`:html``}>${label}</option>`)}</select></label><label>Localisation<input name="station" value="${d.Station || ''}" placeholder="Ville ou destination"/></label><button>Appliquer les filtres</button></form></aside>
   <section class="discovery-results"><div class="results-heading"><h2>${d.Items?.length ?? 0} résultat${truth((d.Items?.length ?? 0)!==1)?html`s`:html``}</h2>${truth((d.Items?.length ?? 0)===100)?html`<span>100 premiers affichés</span>`:html``}</div><div class="discovery-list">${d.Items?.length?d.Items.map((row: ViewData)=>html`<article class="discovery-row"><div class="discovery-image"><img src="${views['activity-image'](row.Category,p)}" alt="" loading="lazy"/><span>Illustration d’activité</span></div><div class="discovery-row-body"><h3><a href="/etablissements/${row.ID}">${row.Name}</a></h3><span class="discovery-category">${category(row.Category)}</span><p class="discovery-location">${row.Station}${truth(row.Station && row.City)?html` · `:html``}${row.City}</p><p>${row.Description || 'Présentation à compléter.'}</p><a class="button secondary" href="/etablissements/${row.ID}">Voir la fiche et contacter</a></div></article>`):html`<div class="empty"><h2>Aucun résultat pour cette recherche.</h2><p>Modifiez les filtres pour découvrir d’autres professionnels.</p><a href="/annuaire" class="button secondary">Réinitialiser les filtres</a></div>`}</div></section></div>`;
 views["history"] = (d, p) =>
   html`<a class="back" href="/partenariats">← Mes partenariats</a>
