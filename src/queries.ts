@@ -38,7 +38,7 @@ export const queries = {
   ],
   directory: [
     {
-      sql: "SELECT id,name,category,station,city,description FROM establishments WHERE status='approved' AND id<>$1 AND ($2='' OR name ILIKE '%'||$2||'%' OR description ILIKE '%'||$2||'%') AND ($3='' OR category=$3) AND ($4='' OR station ILIKE '%'||$4||'%') ORDER BY name LIMIT 100",
+      sql: "SELECT id,name,category,station,city,description FROM establishments WHERE status='approved' AND id<>$1 AND ($2='' OR name ILIKE '%'||$2||'%' OR description ILIKE '%'||$2||'%') AND ($3='' OR category=$3 OR ($3='prestataires' AND category<>'hotel')) AND ($4='' OR station ILIKE '%'||$4||'%') ORDER BY name LIMIT 100",
       fields: ["ID", "Name", "Category", "Station", "City", "Description"],
     },
   ],
