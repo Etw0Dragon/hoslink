@@ -11,7 +11,7 @@ Responsables et équipes des hôtels, loueurs de skis, spas et prestataires loca
 Créer des relations professionnelles locales : annuaire privé, conversations, demandes de devis PDF et accords acceptés par les deux établissements.
 
 ## Capabilities and Constraints
-Go, PostgreSQL, HTML rendu côté serveur. Validation administrative avant accès au réseau. Deux partenaires actifs gratuits par établissement. Prix des extensions non décidés et achats désactivés. Aucune réservation touristique, aucun règlement de prestation ni suivi des commissions. Autorisations serveur et documents privés à conserver.
+TypeScript + Hono + Better Auth, Node.js 24, Drizzle et PostgreSQL 18, JSX rendu côté serveur sans React. Validation administrative avant accès au réseau. Deux partenaires actifs gratuits par établissement. Prix des extensions non décidés et achats désactivés. Aucune réservation touristique, aucun règlement de prestation ni suivi des commissions. Autorisations serveur et documents privés à conserver.
 
 ## Brand Commitments
 Nom Hotlink confirmé par le porteur le 10 novembre 2026. Aucune identité visuelle de montagne. Interface française. Refonte demandée avec une palette premium inspirée du visuel fourni : or, bleu, ardoise, gris clair, beige.

@@ -133,3 +133,9 @@ La configuration GitHub a ensuite été appliquée et vérifiée : aperçu HTTPS
 ## Domaine de l’aperçu — décision du 11 novembre 2026
 
 Le porteur choisit `hoslink.tmfolio.site` et configure le CNAME DNS vers GitHub Pages. Ce domaine devient l’URL canonique de l’aperçu statique : https://hoslink.tmfolio.site/. Le site doit être généré à la racine, sans préfixe `/hoslink/`. Domaine enregistré dans Pages, certificat approuvé, HTTPS imposé et ressources vérifiées. `CNAME` et le script conservent ce choix ; le workflow valide le domaine avant publication. Cela ne change pas le domaine du futur backend ni ses autorisations.
+
+## Migration Node — décision du 11 novembre 2026
+
+Cette décision remplace les choix Go et publication Pages décrits dans l’historique ci-dessus. Cible validée : une application TypeScript + Hono avec JSX côté serveur, sans React/Next, Node.js 24, Better Auth sur `/api/auth/*`, Drizzle avec `pg` et PostgreSQL 18. Conserver l’apparence, les médias, les URLs et les parcours du site. Better Auth gère seul comptes, vérification, récupération, sessions et 2FA. Les tables métier sont séparées des tables d’identité ; les rôles restent contrôlés par le backend. 2FA facultatif pour les membres et obligatoire pour les administrateurs, avec blocage serveur jusqu’à confirmation.
+
+Nouvelle base vide, aucun import des anciens comptes ou données, aucune suppression de l’ancienne base. PDF privés conservés en base (5 Mo), accords versionnés et capacités transactionnelles maintenus, achats désactivés. Déploiement Docker/Coolify sur https://hoslink.tmfolio.site ; configuration distante et DNS attendent les accès. Les migrations sont une étape explicite avant démarrage. L’ancien export Go et la publication Pages sont retirés du fonctionnement cible ; leur configuration distante n’est pas modifiée dans cette session.

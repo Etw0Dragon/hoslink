@@ -17,3 +17,6 @@ dist/
 .aws/
 .codex/
 .agents/
+
+node_modules/
+web/static/auth.js

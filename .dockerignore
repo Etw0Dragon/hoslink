@@ -10,3 +10,7 @@ dist
 .agent/local
 *.dump
 *.dump.enc
+
+node_modules
+tests
+.agent

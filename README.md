@@ -1,83 +1,55 @@
 # Hoslink
 
-Nom de travail d’une plateforme B2B privée entre hôtels et prestataires locaux. Monolithe Go, PostgreSQL, HTML rendu côté serveur. Interface française responsive, sans dépendance JavaScript ni police externe.
+Réseau professionnel privé français pour hôtels et prestataires. Monolithe TypeScript, Hono (JSX côté serveur, sans React), Better Auth, Drizzle avec `pg`, Node.js **24**, PostgreSQL **18**. Les achats sont désactivés.
 
-## Aperçu frontend sur GitHub Pages
+La migration utilise une **nouvelle base vide**, sans transfert de comptes. Les anciens cookies Go ne sont pas reconnus. Le migrateur refuse une base contenant l’ancienne table `users`. L’ancien `.env` et l’ancien volume PostgreSQL ne sont pas utilisés ; ne pas les supprimer.
 
-Aperçu en ligne : **https://hoslink.tmfolio.site/**.
-
-Dépôt : `git@github.com:Etw0Dragon/hoslink.git`. `main` publie uniquement l’export statique ; `backend` sert au travail sur l’application complète, sans hébergement backend automatique. Les mêmes templates servent aux deux modes. L’aperçu permet de parcourir les pages sans compte ni base ; les formulaires sont désactivés.
-
-La procédure complète, les branches, la CI PostgreSQL, les réglages GitHub, les limites de gratuité et le suivi sont documentés dans [.agent/GITHUB.md](.agent/GITHUB.md). L’état de la configuration distante et les vérifications effectuées sont consignés dans `.agent/ROADMAP.md`.
+## Développement
 
 ```sh
-make preview-test
-go run ./cmd/preview -out .preview/hoslink -base-path /hoslink
-python3 -m http.server 4173 --directory .preview
-# http://localhost:4173/hoslink/
-```
-
-## Démarrage local
-
-Prérequis : Go 1.26 ou supérieur, PostgreSQL 18 (ou Docker Compose).
-
-```sh
-# Le .env local est déjà préparé ; Make le charge automatiquement.
+cp .env.example .env.node
+# Remplacer les deux valeurs aléatoires et les mots de passe des URL.
+# Par exemple : openssl rand -hex 32 (générer deux valeurs distinctes).
+npm install
 make db
-make run
+npm run migrate
+npm run build
+npm run dev
 ```
 
-Sur une nouvelle copie du projet, copier `.env.example` vers `.env` et remplacer `CHANGE_ME` dans les trois variables PostgreSQL par le même mot de passe. Le `.env` est ignoré par Git.
-
-`make db` démarre PostgreSQL et crée aussi `partenaires_test`, y compris avec un volume déjà initialisé. La base applicative `partenaires` reste séparée. Si le volume existant utilise un ancien mot de passe, conserver ce mot de passe dans `.env` : changer une variable ne change pas le mot de passe d’un volume existant.
-
-Ouvrir http://localhost:8080. Les migrations versionnées sont appliquées au démarrage avec verrou de migration. `go run ./cmd/server migrate` applique uniquement les migrations.
-
-Sans Docker, créer la base avec PostgreSQL puis renseigner `DATABASE_URL`. Pour exécuter aussi l’application dans Docker : `docker compose --profile app up --build`.
-
-## Premier parcours
-
-1. Créer un compte sur `/inscription`.
-2. En développement, lire le lien dans un fichier `var/mail/*.eml`, puis confirmer l’email. Ces fichiers contiennent des liens privés, ne pas les partager.
-3. Se connecter et soumettre un établissement avec un vrai SIRET valide.
-4. Donner le rôle administrateur au compte vérifié :
-
-   ```sh
-   go run ./cmd/server admin votre-email@example.fr
-   ```
-
-5. Valider le dossier dans `/administration` en consignant la vérification du représentant.
-6. Créer un second compte et établissement, valider, puis essayer recherche, messages, PDF et partenariat dans deux navigateurs ou sessions distinctes.
-
-L’envoi SMTP est utilisé si `SMTP_ADDR` est renseigné. En production, `APP_ENV=production`, une `BASE_URL` HTTPS et SMTP sont obligatoires. Les cookies deviennent alors Secure. Ne pas activer le mode production derrière un accès HTTP.
-
-## Fonctionnalités
-
-Comptes et vérification d’email, renvoi de lien, réinitialisation du mot de passe avec révocation des sessions, entreprises et établissements, invitations et équipes, validation manuelle, annuaire privé et filtres, signalements, conversations et demandes de devis, PDF privés (5 Mo), accords versionnés avec historique, acceptations bilatérales et contrôle transactionnel de la capacité.
-
-Deux places gratuites par établissement. Le modèle conserve les places achetées et l’échéance d’abonnement ; un traitement périodique suspend les accords dépassant la capacité après expiration. La priorité de conservation est choisie dans les partenariats, puis les plus anciens sont conservés. Les opérations de capacité prennent les verrous dans le même ordre.
-
-Les achats sont **désactivés**. Aucun faux paiement ni fournisseur arbitraire n’est installé : prix, prestataire, TVA, impayés et remboursements restent à finaliser avant l’intégration. Les pages juridiques affichent explicitement leur statut de préparation.
-
-## Vérification
+Utiliser Node 24. PostgreSQL de développement est publié sur `127.0.0.1:55432`, l’application sur `http://localhost:8080`. `make db` utilise exclusivement le nouveau volume `hoslink_ts_pg18` et crée `hoslink_node` et `hoslink_ts_test`. Les emails sont écrits en fichiers privés dans `var/mail` si `SMTP_URL` est absent. Ne jamais publier ce répertoire. Les liens de vérification sont gérés par Better Auth ; après vérification, se connecter sur `/connexion`.
 
 ```sh
-make test
-make build
-# Utilise TEST_DATABASE_URL du .env :
-make test-integration
+npm run typecheck
+npm test                           # unitaires ; intégration ignorée sans TEST_DATABASE_URL
+make test-integration              # charge .env.node, utilise la base de test dédiée
+npm run build
+npm start
+npm run admin -- personne@example.fr
 ```
 
-Avec le `.env` chargé, `make test` exécute aussi les tests PostgreSQL : démarrer la base avec `make db` au préalable. Les commandes `go run` directes nécessitent de charger les variables (`set -a; . ./.env; set +a`).
+La dernière commande exige un compte dont l’email est vérifié et révoque ses sessions. Sa prochaine connexion passe par `/securite` ; les routes privées sont bloquées côté serveur jusqu’à confirmation d’un code Authenticator. La même page permet la configuration facultative du 2FA, l’affichage initial des codes de secours, la désactivation avec mot de passe et la révocation des sessions. Chaque code de secours est à usage unique. Les QR codes sont générés dans le navigateur, sans service externe.
 
-Les tests d’intégration créent un schéma isolé temporaire et le détruisent. Sans `TEST_DATABASE_URL`, ils sont explicitement ignorés. Les autres tests couvrent rendu HTML, protections de formulaires, accès anonyme et validation des documents.
+## Architecture
 
-## Exploitation
+- `src/auth.ts`, `src/browser/auth.ts` : serveur et client Better Auth, monté sur `/api/auth/*`, emails, sessions en base, vérification, récupération et 2FA.
+- `src/db/schema.ts`, `migrations/` : modèles Drizzle et migrations SQL versionnées avec empreintes et verrou de migration. Tables `auth_*` séparées des profils métier. Une vue de lecture `users` joint les profils et identités ; elle ne contient aucun mot de passe.
+- `src/business.ts` : établissements, équipes, invitations, conversations, PDF et administration. Validation Zod et autorisations côté serveur.
+- `src/partnerships.ts` : acceptations bilatérales, versions, priorités et expiration. Les établissements sont verrouillés dans un ordre stable avant toute activation. La réconciliation périodique utilise un verrou PostgreSQL pour coordonner les instances.
+- `src/views/` et `src/queries.ts` : rendu Hono et projections des requêtes d’origine. Le HTML, CSS, médias et routes existants sont conservés. Le JavaScript d’authentification est compilé localement dans `web/static/auth.js`.
 
-Consulter [docs/OPERATIONS.md](docs/OPERATIONS.md), [.agent/PLAN.md](.agent/PLAN.md) et [.agent/ROADMAP.md](.agent/ROADMAP.md). Aucun déploiement public n’a été effectué.
+Les PDF restent en PostgreSQL, limités à 5 Mo avec contrôle élémentaire `%PDF-`/`%%EOF`. Chaque téléchargement vérifie l’appartenance à la conversation. Seuls `web/static/` et le logo public sont servis comme ressources. Les contrôles de contenu ne remplacent pas un antivirus pour une ouverture à un public non maîtrisé.
 
-### Voir la nouvelle interface
+Les mutations métier exigent une origine exacte et un jeton CSRF ; Better Auth applique sa propre protection sur ses routes. Les rôles et appartenances ne sont jamais acceptés depuis les formulaires d’inscription. Les invitations métier nécessitent la session d’un compte vérifié avec l’email destinataire. Les filtres de recherche sont conservés 30 minutes après une connexion, sans redirection vers une URL arbitraire.
 
-Après modification du frontend, arrêter le serveur avec Ctrl+C puis lancer `make run` : les templates et médias sont embarqués dans le binaire Go, sans rechargement à chaud. Ouvrir **http://localhost:8080/presentation** pour voir le nouvel accueil, même avec un compte connecté. Le chemin `/` peut rediriger vers l’espace privé. L’annuaire et les fiches utilisent aussi les nouveaux visuels.
+## Recette avant bascule
 
-Si vous lancez `bin/partenaires`, exécuter `make build` avant de redémarrer ce binaire. Avec Docker : `docker compose --profile app up -d --build app`. Recharger le navigateur avec Ctrl+Maj+R. Les médias sont locaux ; la recherche de l’accueil conserve ses filtres à la connexion, mais les résultats restent réservés aux établissements validés.
+Depuis une base de test vide, lancer `make test-integration`. La suite couvre migrations réexécutables, vérification d’email, 2FA, codes incorrects et codes de secours à usage unique, obligation administrateur, rôles, invitations, isolation des conversations/PDF, capacités simultanées, versions et expiration. Les tests n’effacent aucune base : pour une nouvelle exécution utiliser une nouvelle base `hoslink_ts_test_<suffixe>` ou conserver les données de recette.
+
+En complément, avec deux comptes vérifiés : créer deux établissements, attribuer l’administration à un compte, configurer le 2FA, valider les fiches avec justification, chercher puis démarrer une conversation, joindre et télécharger un PDF, proposer et accepter un accord des deux côtés. Tester le renvoi d’email et la récupération du mot de passe depuis les emails locaux, puis vérifier que les anciennes sessions sont refusées. Sur ordinateur et mobile, comparer accueil, navigation, médias, formulaires, filtres et historique à l’aperçu actuel. Vérifier aussi SMTP réel, restauration de sauvegarde et persistance après recréation du conteneur applicatif.
+
+## Coolify
+
+Cible : **https://hoslink.tmfolio.site**. Les fichiers sont préparés ; aucun déploiement distant, changement DNS ou changement de réglage Pages n’est effectué par cette migration. Voir [les opérations](docs/OPERATIONS.md) pour variables, déploiement, sauvegardes, restauration et bascule depuis GitHub Pages. Le workflow Pages et l’export Go ont été retirés. L’historique des décisions reste dans [.agent/PLAN.md](.agent/PLAN.md) et [.agent/ROADMAP.md](.agent/ROADMAP.md).
+
+Sources techniques : [Hono et Better Auth](https://hono.dev/examples/better-auth), [Two Factor](https://better-auth.com/docs/plugins/2fa).
