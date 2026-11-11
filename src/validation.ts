@@ -26,7 +26,7 @@ export function filters(query: Record<string, string>) {
     if (
       v &&
       (k !== "category" ||
-        ["hotel", "ski", "spa", "activite", "autre"].includes(v))
+        ["hotel", "ski", "spa", "activite", "autre", "prestataires"].includes(v))
     )
       f.set(k, v);
   }

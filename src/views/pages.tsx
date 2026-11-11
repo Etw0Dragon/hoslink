@@ -469,92 +469,14 @@ views["dashboard"] = (d, p) => html`
     </div>
   </section>
 `;
-views["directory"] = (d, p) =>
-  html`<div class="page-heading directory-heading">
-      <div>
-        <h1>Les bons partenaires,<br />à portée de rencontre.</h1>
-        <p>
-          Trouvez les professionnels avec qui enrichir l’expérience de vos
-          clients.
-        </p>
-      </div>
-      <span class="directory-assurance">Réseau privé · Profils validés</span>
-    </div>
-    <form
-      class="filters card"
-      role="search"
-      aria-label="Rechercher un professionnel"
-      action="/annuaire"
-    >
-      <label class="search"
-        >Rechercher<input
-          name="q"
-          placeholder="Un nom, un service, une envie…"
-          value="${d.Query}" /></label
-      ><label
-        >Activité<select name="category">
-          <option value="">Toutes les activités</option>
-          <option
-            value="hotel"
-            ${truth(d.Category === "hotel") ? html`selected` : html``}
-          >
-            Hôtel
-          </option>
-          <option
-            value="ski"
-            ${truth(d.Category === "ski") ? html`selected` : html``}
-          >
-            Location de skis
-          </option>
-          <option
-            value="spa"
-            ${truth(d.Category === "spa") ? html`selected` : html``}
-          >
-            Spa & bien-être
-          </option>
-          <option
-            value="activite"
-            ${truth(d.Category === "activite") ? html`selected` : html``}
-          >
-            Activités
-          </option>
-          <option
-            value="autre"
-            ${truth(d.Category === "autre") ? html`selected` : html``}
-          >
-            Autres services
-          </option>
-        </select></label
-      ><label
-        >Localisation<input
-          name="station"
-          value="${d.Station}"
-          placeholder="Une destination…" /></label
-      ><button>Rechercher ${views["arrow"](d, p)}</button>
-    </form>
-    <div class="results-heading">
-      <h2>Les professionnels du réseau</h2>
-      <span class="count"
-        >${d.Items?.length ?? 0}
-        résultat${truth((d.Items?.length ?? 0) !== 1) ? html`s` : html``}${truth((d.Items?.length ?? 0) === 100) ? html` · 100 premiers affichés` : html``}</span
-      >${truth(d.Query || d.Category || d.Station) ? html`<a href="/annuaire" class="text-action">Effacer les filtres</a>` : html``}
-    </div>
-    <div class="grid">
-      ${
-        d.Items?.length
-          ? d.Items.map((row: ViewData) => html`${views["listing"](row, p)}`)
-          : html`<div class="empty">
-              <h2>Le réseau se construit avec vous.</h2>
-              <p>
-                Aucun établissement ne correspond à ces critères. Essayez une
-                autre recherche ou revenez après les prochaines validations.
-              </p>
-              <a class="button secondary" href="/annuaire"
-                >Réinitialiser les filtres</a
-              >
-            </div>`
-      }
-    </div>`;
+views["directory"] = (d, p) => html`
+  <section class="discovery-hero"><h1>Trouvez le bon partenaire<br />ou le bon hôtel.</h1><p>Développez votre réseau et créez de nouvelles collaborations.</p>
+  <form action="/annuaire" role="search" class="discovery-search">
+    <div class="discovery-tabs" aria-label="Type d’établissement"><button name="category" value="prestataires" class="${d.Category !== 'hotel' ? 'selected' : ''}">Prestataires</button><button name="category" value="hotel" class="${d.Category === 'hotel' ? 'selected' : ''}">Hôtels</button></div>
+    <div class="discovery-search-fields"><label>Mots-clés<input name="q" value="${d.Query || ''}" placeholder="Un nom, un service…" /></label><label>Localisation<input name="station" value="${d.Station || ''}" placeholder="Ville ou destination" /></label><button name="category" value="${d.Category || ''}">Rechercher</button></div>
+  </form><nav class="discovery-quick" aria-label="Catégories rapides">${[['hotel','Hôtels'],['ski','Location de skis'],['spa','Bien-être & spa'],['activite','Activités'],['autre','Autres services']].map(([value,label])=>html`<a href="/annuaire?category=${value}">${label}</a>`)}</nav></section>
+  <div class="discovery-content"><aside class="discovery-filters"><div class="split"><h2>Filtres</h2><a href="/annuaire">Réinitialiser</a></div><form action="/annuaire"><input type="hidden" name="q" value="${d.Query || ''}"/><label>Activité<select name="category"><option value="">Toutes les activités</option>${[['prestataires','Tous les prestataires'],['hotel','Hôtels'],['ski','Location de skis'],['spa','Spa & bien-être'],['activite','Activités'],['autre','Autres services']].map(([value,label])=>html`<option value="${value}" ${truth(d.Category===value)?html`selected`:html``}>${label}</option>`)}</select></label><label>Localisation<input name="station" value="${d.Station || ''}" placeholder="Ville ou destination"/></label><button>Appliquer les filtres</button></form></aside>
+  <section class="discovery-results"><div class="results-heading"><h2>${d.Items?.length ?? 0} résultat${truth((d.Items?.length ?? 0)!==1)?html`s`:html``}</h2>${truth((d.Items?.length ?? 0)===100)?html`<span>100 premiers affichés</span>`:html``}</div><div class="discovery-list">${d.Items?.length?d.Items.map((row: ViewData)=>html`<article class="discovery-row"><div class="discovery-image"><img src="${views['activity-image'](row.Category,p)}" alt="" loading="lazy"/><span>Illustration d’activité</span></div><div class="discovery-row-body"><h3><a href="/etablissements/${row.ID}">${row.Name}</a></h3><span class="discovery-category">${category(row.Category)}</span><p class="discovery-location">${row.Station}${truth(row.Station && row.City)?html` · `:html``}${row.City}</p><p>${row.Description || 'Présentation à compléter.'}</p><a class="button secondary" href="/etablissements/${row.ID}">Voir la fiche et contacter</a></div></article>`):html`<div class="empty"><h2>Aucun résultat pour cette recherche.</h2><p>Modifiez les filtres pour découvrir d’autres professionnels.</p><a href="/annuaire" class="button secondary">Réinitialiser les filtres</a></div>`}</div></section></div>`;
 views["history"] = (d, p) =>
   html`<a class="back" href="/partenariats">← Mes partenariats</a>
     <h1>Historique des conditions.</h1>
