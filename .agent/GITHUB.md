@@ -101,10 +101,10 @@ Le script vérifie que le dépôt est public, que l’arbre est propre et que `o
 - `main` comme branche par défaut ; suppression des branches de travail après fusion.
 - Pages avec **Source : GitHub Actions**, pas « Deploy from a branch ».
 - Environnement `github-pages` avec politique explicite `main`. Les politiques préexistantes sont affichées, pas supprimées : retirer manuellement toute autre autorisation indésirable dans Settings → Environments.
-- Protection de `main` et `backend` : PR, une approbation, CI `Go and PostgreSQL`, branche à jour, discussions résolues, historique linéaire, aucun force push ni suppression ; administrateurs inclus.
+- Protection de `main` et `backend` : PR, approbation configurable, CI `Go and PostgreSQL`, branche à jour, discussions résolues, historique linéaire, aucun force push ni suppression ; administrateurs inclus.
 - Relance du workflow Pages sur `main`.
 
-**Attention opératoire :** le script remplace les paramètres de protection des deux branches par cette politique ; relire sa section JSON avant exécution si le dépôt possède déjà des règles. Une approbation nécessite un second compte habilité ; ne pas activer cette règle si personne ne peut approuver. Le script ne règle ni visibilité, ni accès de la collaboratrice, ni abonnement.
+**Attention opératoire :** le script remplace les paramètres de protection des deux branches par cette politique ; relire sa section JSON avant exécution si le dépôt possède déjà des règles. Par défaut, aucune approbation tierce n’est obligatoire pour ne pas bloquer le porteur seul ; PR, CI et discussions résolues restent obligatoires. Une fois la collaboratrice habilitée, lancer `HOSLINK_REQUIRED_APPROVALS=1 sh scripts/configure-github.sh` pour exiger une approbation. Le script ne règle ni visibilité, ni accès de la collaboratrice, ni abonnement.
 
 Il s’arrête au premier échec sans annuler les étapes précédentes. Après correction, il peut être relancé ; vérifier les politiques d’environnement affichées. Les protections existantes peuvent empêcher le premier push : intégrer la préparation par PR dans ce cas.
 

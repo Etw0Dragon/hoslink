@@ -3,6 +3,8 @@
 # Never changes visibility, creates a paid resource, force-pushes or resets a branch.
 set -eu
 repo=Etw0Dragon/hoslink
+approvals=${HOSLINK_REQUIRED_APPROVALS:-0}
+case "$approvals" in 0|1) ;; *) echo "HOSLINK_REQUIRED_APPROVALS doit valoir 0 ou 1." >&2; exit 1 ;; esac
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
 command -v gh >/dev/null || { echo 'Installer GitHub CLI et lancer gh auth login.' >&2; exit 1; }
@@ -56,11 +58,11 @@ if [ "$(gh api "repos/$repo/environments/github-pages/deployment-branch-policies
 fi
 # Existing broader environment policies are shown for manual review, never deleted.
 gh api "repos/$repo/environments/github-pages/deployment-branch-policies" --jq '.branch_policies[] | [.name, .type] | @tsv'
-cat >"$scratch/protection.json" <<'JSON'
+cat >"$scratch/protection.json" <<JSON
 {
   "required_status_checks":{"strict":true,"contexts":["Go and PostgreSQL"]},
   "enforce_admins":true,
-  "required_pull_request_reviews":{"dismiss_stale_reviews":true,"required_approving_review_count":1},
+  "required_pull_request_reviews":{"dismiss_stale_reviews":true,"required_approving_review_count":$approvals},
   "restrictions":null,
   "required_linear_history":true,
   "allow_force_pushes":false,

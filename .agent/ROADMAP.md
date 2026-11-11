@@ -104,3 +104,6 @@ Nom visible remplacé par Hoslink dans les pages, métadonnées et sous-titres. 
 - PostgreSQL Docker existant démarré/vérifié via `make db`. `make test` réussit avec détecteur de courses et base réelle. `make test-integration` réussit pour `TestIntegrationIsolationAndCapacity`, `TestIntegrationExpiration` et `TestIntegrationDiscoverySurvivesLogin`. Les anciennes limites d’accès à PostgreSQL ne s’appliquent plus à cette recette.
 - GitHub CLI téléchargé depuis la publication officielle, archive contrôlée par SHA-256 ; exécutable dans `/tmp/hoslink-tools`, non ajouté au dépôt. Connexion par device code officielle initiée ; aucun jeton transmis dans la conversation.
 - Actions GitHub fixées sur leurs SHA immuables résolus par API officielle, avec commentaires de version et suivi Dependabot.
+
+- Premier commit `a90730b` poussé sur `main` et `backend` sans force push. Connexion GitHub CLI confirmée au compte Etw0Dragon. Actionlint valide les workflows. Secrets locaux exclus du commit après contrôle des valeurs sensibles.
+- Pour éviter un verrouillage sans second relecteur, le script applique par défaut zéro approbation tierce obligatoire, avec PR/CI requises. `HOSLINK_REQUIRED_APPROVALS=1` permet d’exiger une approbation une fois la collaboratrice habilitée.
