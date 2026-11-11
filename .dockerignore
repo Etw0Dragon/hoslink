@@ -1,0 +1,12 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+var
+bin
+dist
+.preview
+.agent/local
+*.dump
+*.dump.enc

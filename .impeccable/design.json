@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-10T21:33:40.280007+00:00",
+  "title": "Design System: Hotlink",
+  "extensions": {
+    "motion": [
+      {
+        "name": "link-arrive",
+        "value": "1.2s cubic-bezier(.16,1,.3,1)",
+        "purpose": "Arrivée unique de l’anneau bleu ; supprimée en réduction des animations."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide",
+        "value": "1600px"
+      },
+      {
+        "name": "application-compact",
+        "value": "1200px"
+      },
+      {
+        "name": "landing-compact",
+        "value": "1050px"
+      },
+      {
+        "name": "mobile",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Bouton primary",
+      "kind": "button",
+      "description": "Bouton primary",
+      "html": "<button class=\"ds-button-primary\">Rejoindre Hotlink</button>",
+      "css": ".ds-button-primary{font-family:'Hotlink Sans',Helvetica,sans-serif;font-size:14px;font-weight:600;min-height:48px;padding:14px 22px;border:1px solid var(--blue,#3079bc);border-radius:4px;background:var(--blue,#3079bc);color:#fff;cursor:pointer}.ds-button-primary:hover{background:#215e97}.ds-button-primary:focus-visible{outline:3px solid var(--blue,#3079bc);outline-offset:5px}",
+      "refersTo": "button-primary"
+    },
+    {
+      "name": "Bouton secondary",
+      "kind": "button",
+      "description": "Bouton secondary",
+      "html": "<button class=\"ds-button-secondary\">Gérer ma capacité</button>",
+      "css": ".ds-button-secondary{font-family:'Hotlink Sans',Helvetica,sans-serif;font-size:14px;font-weight:600;min-height:48px;padding:14px 22px;border:1px solid var(--line,#dcdde2);border-radius:4px;background:transparent;color:var(--slate,#354150);cursor:pointer}.ds-button-secondary:hover{background:#e9eff6}.ds-button-secondary:focus-visible{outline:3px solid var(--blue,#3079bc);outline-offset:5px}",
+      "refersTo": "button-secondary"
+    },
+    {
+      "name": "Bouton gold",
+      "kind": "button",
+      "description": "Bouton gold",
+      "html": "<button class=\"ds-button-gold\">Rejoindre le réseau</button>",
+      "css": ".ds-button-gold{font-family:'Hotlink Sans',Helvetica,sans-serif;font-size:14px;font-weight:600;min-height:48px;padding:14px 22px;border:1px solid var(--gold,#e2aa24);border-radius:4px;background:var(--gold,#e2aa24);color:var(--slate,#354150);cursor:pointer}.ds-button-gold:hover{background:#f0bd40}.ds-button-gold:focus-visible{outline:3px solid var(--blue,#3079bc);outline-offset:5px}",
+      "refersTo": "button-gold"
+    },
+    {
+      "name": "Champ professionnel",
+      "kind": "input",
+      "description": "Champ professionnel",
+      "html": "<label class=\"ds-field\">Email professionnel<input type=\"email\" placeholder=\"vous@etablissement.fr\"></label>",
+      "css": ".ds-field{font-family:'Hotlink Sans',Helvetica,sans-serif;font-size:14px;display:flex;flex-direction:column;gap:7px;font-weight:600;color:var(--ink,#354150)}.ds-field input{font-family:'Hotlink Sans',Helvetica,sans-serif;font-size:14px;border:1px solid #c4c8ce;background:#fff;border-radius:7px;padding:11px 12px;min-height:44px;color:var(--ink,#354150)}.ds-field input:focus-visible{outline:3px solid var(--blue,#3079bc);outline-offset:5px}"
+    },
+    {
+      "name": "Navigation publique",
+      "kind": "nav",
+      "description": "Navigation publique",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Navigation principale\"><a href=\"#concept\">Le concept</a><a href=\"#offre\">L’offre</a></nav>",
+      "css": ".ds-nav{display:flex;gap:30px}.ds-nav a{font-family:'Hotlink Sans',Helvetica,sans-serif;font-size:14px;padding:8px 0;text-decoration:none;color:var(--slate,#354150)}.ds-nav a:hover{color:var(--blue,#3079bc)}.ds-nav a:focus-visible{outline:3px solid var(--blue,#3079bc);outline-offset:5px}"
+    },
+    {
+      "name": "Badge de rôle",
+      "kind": "chip",
+      "description": "Badge de rôle",
+      "html": "<span class=\"ds-badge\">Responsable</span>",
+      "css": ".ds-badge{font-family:'Hotlink Sans',Helvetica,sans-serif;font-size:14px;display:inline-block;font-size:10px;border-radius:5px;padding:5px 10px;background:#edf1f6;color:var(--slate,#354150)}"
+    },
+    {
+      "name": "Carte de formulaire",
+      "kind": "card",
+      "description": "Carte de formulaire",
+      "html": "<section class=\"ds-card\"><h2>Votre équipe.</h2><p>Invitez un collaborateur à rejoindre votre établissement.</p></section>",
+      "css": ".ds-card{font-family:'Hotlink Sans',Helvetica,sans-serif;border:1px solid var(--line,#dcdde2);background:#fff;border-radius:var(--radius,12px);padding:25px;color:var(--ink,#354150)}.ds-card h2{font-size:19px;line-height:1.35;font-weight:600;letter-spacing:-.035em;margin:7px 0 12px}.ds-card p{font-size:16px;line-height:1.6;color:var(--muted,#626b77);margin:10px 0 20px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Le lien éditorial",
+    "overview": "Cette formule décrit l’implémentation actuelle ; elle ne constitue pas un nouveau choix de marque validé. Hotlink associe une composition aérée, une sans-serif affirmée et deux anneaux entrelacés pour présenter un réseau professionnel accueillant et précis.\n\nLa palette premium vient de la référence fournie : bleu, or, ardoise, gris clair et beige. L’identité concerne tous les hôtels et prestataires, sans univers de montagne. Les composants restent simples et lisibles, avec une densité plus fonctionnelle dans l’espace connecté.",
+    "keyCharacteristics": [
+      "Typographie sans-serif éditoriale.",
+      "Bleu fonctionnel, or ponctuel et surfaces neutres.",
+      "Géométrie de liens entrelacés et profondeur par aplats."
+    ],
+    "rules": [],
+    "dos": [
+      "Do conserver les fontes locales et la hiérarchie sans-serif.",
+      "Do garder un focus visible et respecter la réduction des animations.",
+      "Do présenter les catégories et capacités réelles avec des libellés explicites."
+    ],
+    "donts": [
+      "Don't réintroduire une identité de montagne.",
+      "Don't inventer de statistiques, témoignages ou logos de partenaires.",
+      "Don't présenter cette documentation comme une validation visuelle en navigateur."
+    ]
+  }
+}

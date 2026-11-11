@@ -1,0 +1,19 @@
+.env
+var/
+bin/
+coverage.out
+*.dump
+*.dump.enc
+
+# Exports statiques et outils locaux
+dist/
+.preview/
+.agent/local/
+.env.*
+!.env.example
+*.pem
+*.key
+.DS_Store
+.aws/
+.codex/
+.agents/

@@ -1,0 +1,28 @@
+/* Only exported previews load this stylesheet; the application is unaffected. */
+.preview-banner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px 22px;
+  padding: 12px 5%;
+  background: #f4dfbc;
+  color: #102c3c;
+  font-size: 12px;
+}
+.preview-banner a { color: #102c3c; text-decoration: underline; text-underline-offset: 3px; }
+.preview-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.preview-form-note { font-size: 12px; color: #536171; }
+.preview-form :disabled { cursor: not-allowed; }
+.application .preview-banner { position: relative; z-index: 3; }
+@media (min-width: 761px) {
+  /* Keep the shared sidebar below a banner of any wrapped height. */
+  .application .sidebar {
+    position: sticky;
+    inset: 0 auto auto 0;
+    align-self: flex-start;
+    flex-shrink: 0;
+    height: 100vh;
+  }
+  .application .workspace { margin-left: 0; }
+}

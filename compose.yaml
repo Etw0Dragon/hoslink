@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: partenaires
+      POSTGRES_USER: partenaires
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD dans .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./scripts/create-test-db.sql:/docker-entrypoint-initdb.d/010-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U partenaires -d partenaires"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+  app:
+    build: .
+    profiles: ["app"]
+    env_file: .env
+    environment:
+      ADDR: 0.0.0.0:8080
+      DATABASE_URL: postgres://partenaires:${POSTGRES_PASSWORD}@db:5432/partenaires?sslmode=disable
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - mail_data:/app/var/mail
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  postgres_data:
+  mail_data:

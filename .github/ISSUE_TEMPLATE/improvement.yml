@@ -1,0 +1,17 @@
+name: Proposer une amélioration
+description: Suivre un changement de produit ou d’interface
+title: "[Évolution] "
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin et pages concernées
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critères de validation
+      description: Comment saura-t-on que le changement est terminé ?
+    validations:
+      required: true
