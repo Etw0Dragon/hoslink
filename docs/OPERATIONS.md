@@ -91,3 +91,17 @@ Référence : https://better-auth.com/docs/plugins/2fa#trusted-devices.
 ### Mode de recette sur la base actuelle
 
 Dans Coolify, définir `NODE_ENV=test-prod` puis redéployer. HTTPS, SMTP, vérification email, A2F administrateur et cookies sécurisés restent requis. Les nouveaux établissements avec un SIRET unique de 14 chiffres sont validés automatiquement ; la validation est journalisée. Les fausses données sont enregistrées dans la base actuelle. Revenir à `NODE_ENV=production` puis redéployer pour rétablir les contrôles normaux ; les données et validations de test restent présentes et nécessitent un nettoyage explicite.
+
+### Ajouter des comptes fictifs avec Faker
+
+La commande `seed:demo` crée directement des utilisateurs Better Auth (email marqué vérifié, mot de passe compatible Better Auth), profils responsables, entreprises et établissements approuvés. Les emails utilisent `example.invalid` et sont réservés à la démo ; aucun email n'est envoyé. La commande est incluse dans l'image applicative après déploiement et ne s'exécute jamais au démarrage.
+
+Depuis la console du conteneur **app** dans Coolify, exécuter la commande suivante en remplaçant le mot de passe temporaire et les quantités. Le nom de base et l'hôte Compose attendus sont `db/hoslink_node` :
+
+```sh
+DEMO_SEED_PASSWORD='mot-de-passe-de-demo-unique' node dist/seed-demo.js --hotels=3 --providers=5 --confirm-production=db/hoslink_node
+```
+
+Chaque quantité est comprise entre 0 et 25. La commande est réexécutable : les emails déjà présents sont ignorés. Tous les nouveaux comptes partagent le mot de passe transmis à la commande. Choisir un mot de passe réservé à ces faux comptes et ne pas le conserver comme variable Coolify. En `production` ou `test-prod`, le drapeau de confirmation doit correspondre exactement à `hôte/base`; l'outil affiche la valeur attendue s'il manque. Les comptes ne sont pas administrateurs et ne reçoivent pas de 2FA administrateur.
+
+Les données restent en base après le retour de `test-prod` à `production`. Le seed n'inclut pas de suppression : toute suppression doit être une opération SQL contrôlée, en tenant compte des messages et partenariats associés. Ne pas utiliser d'adresses réelles ni de données réelles d'établissements dans les fiches fictives.
