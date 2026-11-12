@@ -123,3 +123,44 @@ Nom visible remplacé par Hoslink dans les pages, métadonnées et sous-titres. 
 - Relance Pages après changement de domaine : génération avec `base_path` vide. Les liens HTML ne contiennent plus `/hoslink/static/` ni `/hoslink/public/`. Vérification de 21 pages et ressources : HTTP 200 sur le nouveau domaine, sans formulaires actifs.
 - Domaine canonique consigné dans `CNAME`, utilisé par le script et contrôlé par le workflow contre `configure-pages.outputs.host`. Configuration Actions et documentation actualisées ; le fichier CNAME seul ne remplace pas le réglage Pages API.
 - Contrôles de fusion : les validations manuelles, même réussies, ne satisfont pas la règle GitHub. Relance de la PR via fermeture/réouverture pour obtenir un véritable événement `pull_request`. Aucune protection désactivée ni fusion administrateur forcée.
+
+## Migration TypeScript / Hono / Better Auth — 11 novembre 2026
+
+Le code Go et son export statique sont remplacés par `src/`, Node 24 et PostgreSQL 18. Les requêtes métier de lecture, le HTML et les ressources existantes sont repris ; les mutations sont portées avec validation Zod, isolation par établissement, invitations métier, documents privés, versions et verrous transactionnels. Better Auth et Drizzle gèrent l’identité séparément des profils métier. Le client ajoute vérification, récupération, révocation, Authenticator et codes de secours ; le middleware bloque l’administrateur sans 2FA confirmé.
+
+Les nouvelles migrations SQL sont sérialisées et vérifiées par empreintes. Elles refusent une ancienne base Go. Compose utilise de nouveaux volumes et noms de bases, sans accès à l’ancienne base. Docker, CI TypeScript/PostgreSQL, commandes npm et guide Coolify/sauvegarde/bascule sont préparés. Les réglages distants GitHub Pages, Coolify et DNS restent inchangés.
+
+**Limites de vérification de cette session** : résolution DNS npm indisponible et accès Docker refusé. L’installation des nouvelles dépendances, le typecheck complet, les tests Hono/Better Auth/PostgreSQL, le build Docker, la recette responsive et la persistance ne peuvent pas être annoncés comme réussis. La base de test cible est préparée dans les fichiers mais n’a pas pu être créée physiquement. Les tests ajoutés doivent être exécutés avant fusion et ouverture. Générer le lockfile npm et passer à `npm ci` dès que le registre est accessible. Les anciennes réussites Go ne valident pas le nouveau runtime.
+
+Contrôles effectivement exécutés sur cette migration : parsing de 20 fichiers TypeScript/TSX sans diagnostic de syntaxe avec le compilateur TypeScript local d’un autre projet, contrôle syntaxique de `web/static/app.js`, parsing JSON/YAML et `git diff --check`. Une inspection structurelle temporaire de 20 états de pages a vérifié la conversion et l’échappement ; elle n’utilise pas le runtime Hono et ne compte donc pas comme recette applicative. Tentatives `npm run typecheck`, `npm test`, `npm run build` : outils absents faute d’installation des dépendances. Tentative Docker : socket refusé. Tentative Playwright : navigateur Chromium absent. Node hôte est 26 ; le runtime Node 24 n’a pas été exécuté localement. Aucun résultat de test PostgreSQL, de capture visuelle ou de build Docker n’est revendiqué.
+
+## Vérifications avant push GitHub — 11 novembre 2026
+
+L’accès réseau et Docker autorisé lève les blocages précédents : dépendances installées, `package-lock.json` ajouté, Docker et CI passés à `npm ci`. Contrôle TypeScript complet et compilation réussis. Suite réelle PostgreSQL 18 exécutée sur un conteneur et une base de test distincts de l’ancienne application : **12 tests réussis**, aucun ignoré. Les scénarios couvrent identité, email, récupération/révocation, 2FA et obligation administrateur, codes de secours, isolation, rôles, invitations, recherche conservée, concurrence des capacités, versions et expiration. Le limiteur est désactivé uniquement avec NODE_ENV=test pour ces scénarios ; un test séparé vérifie le refus 429 avec la configuration normale.
+
+Dépendances Node HTTP, SMTP et esbuild mises à jour après audit : zéro vulnérabilité de production signalée par npm. Construction Docker Node 24 réussie ; les tests locaux utilisent le Node 26 hôte. Les anciennes bases et volumes n’ont pas été modifiés. La recette visuelle responsive, le SMTP réel, une restauration et le déploiement distant restent à réaliser. Le guide d’installation sur un Coolify neuf est dans `docs/OPERATIONS.md`.
+
+## Correction du build Coolify — 11 novembre 2026
+
+Échec utilisateur code 127 reproduit avec `ARG NODE_ENV=production` : npm omet les dépendances de développement et la compilation échoue avec `tsc: not found`. Le Dockerfile exige maintenant `npm ci --include=dev` avant compilation, en conservant le nettoyage `npm prune --omit=dev` pour l’image finale. Vérification de l’image corrigée avec la même injection de NODE_ENV. Documentation des variables d’exécution et du paramètre SMTP `requireTLS` actualisée.
+
+## Appareils de confiance et refonte de l’espace professionnel — 11 novembre 2026
+
+- Option « Faire confiance à cet appareil pendant 30 jours » sur Authenticator et code de secours. Cookie natif Better Auth signé, HttpOnly, SameSite=Lax, Secure en production, contrôlé par les enregistrements serveur. Expiration et révocation imposent à nouveau le second facteur. Réinitialiser le mot de passe révoque aussi les appareils mémorisés.
+- Révocation des appareils depuis `/securite`, mutation protégée par origine, CSRF et identité. Après connexion, accès direct à l’administration pour un administrateur et au tableau de bord pour un établissement validé, en conservant la priorité des filtres de recherche.
+- Nouveau layout Hono JSX commun à l’entreprise et la sécurité : navigation bleu nuit, actions dorées, fond chaud, logo et typographie hérités de l’accueil. Les pages de connexion et d’A2F reprennent une composition photographique en arche. Navigation mobile horizontale avec destination active visible et déconnexion accessible. Aucun établissement ou résultat inventé dans l’application.
+- Vérifications : typecheck et build, 14 tests PostgreSQL/unitaires réussis, dont navigateur mémorisé/nouveau, cookie falsifié, expiration et révocation. Chromium : 7 pages à 1440 et 390 px sans débordement horizontal ni erreur JavaScript, captures inspectées ; case de confiance et opt-out, erreur de code/réessai et déconnexion mobile vérifiés dans le navigateur. Les captures utilisent uniquement des états locaux de recette, pas des comptes de production.
+
+## Mode test-prod
+
+`NODE_ENV=test-prod` conserve HTTPS, SMTP, les cookies sécurisés, l’email vérifié et l’A2F administrateur ; les nouveaux établissements avec SIRET unique à 14 chiffres sont validés automatiquement et inscrits au journal. La base actuelle conserve les données de recette après retour en production. Voir docs/OPERATIONS.md.
+
+## Recherche adaptée et diagnostic de création — 11 novembre 2026
+
+La catégorie choisie lors de la création de l’établissement pilote la recherche : hôtel vers prestataires, prestataire vers hôtels, y compris les découvertes du tableau de bord. Le choix reste effectué lors de la création de l’établissement, après le compte personnel ; il n’a pas été ajouté à l’inscription Better Auth. En cas de SIREN déjà enregistré sous un autre responsable, le message explique maintenant que les neuf premiers chiffres du SIRET identifient l’entreprise et indique le parcours d’invitation. La protection reste active. Tests PostgreSQL isolés : deux entreprises aux SIREN différents peuvent être créées en test-prod ; deux SIRET de même SIREN pour des utilisateurs distincts sont refusés. Suite : 16 tests réussis, compilation et typecheck réussis. La cause du cas signalé en production reste à confirmer par son message exact.
+
+## Générateur Faker pour Coolify — 12 novembre 2026
+
+Faker.js est une dépendance runtime et `src/seed-demo.ts` compile dans l'image Docker applicative. `node dist/seed-demo.js` crée en transaction des utilisateurs Better Auth vérifiés, profils responsables, entreprises et établissements approuvés avec emails `example.invalid`. Comptes réexécutables par identifiant stable, quantités limitées à 25 de chaque type. Les environnements `production` et `test-prod` exigent confirmation explicite correspondant à l'hôte et la base. Le mot de passe partagé est fourni temporairement via `DEMO_SEED_PASSWORD`; aucun email n'est envoyé et aucun seed n'est déclenché au démarrage. La procédure console Coolify est dans `docs/OPERATIONS.md`.
+
+Vérifications locales : typecheck, build et tests unitaires réussis (incluant limite des quantités, domaine email, confirmation production et compatibilité du hash Better Auth). Tests PostgreSQL d'intégration ignorés sans `TEST_DATABASE_URL`. Aucun seed exécuté, aucune base distante touchée, aucun push ou déploiement Coolify effectué.

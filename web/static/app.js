@@ -1,5 +1,6 @@
-// Native forms remain fully functional without JavaScript.
+// Business forms use native submission; authentication is handled by Better Auth.
 document.addEventListener("submit", (event) => {
+  if (event.defaultPrevented) return;
   const form = event.target;
   if (!(form instanceof HTMLFormElement) || form.method !== "post") return;
   if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) {
@@ -30,3 +31,11 @@ window.addEventListener("pageshow", () => {
     });
   });
 });
+
+// Keep the current destination visible in the horizontal mobile navigation.
+if (window.matchMedia("(max-width: 760px)").matches) {
+  const nav = document.querySelector(".enterprise .sidebar nav");
+  const active = nav?.querySelector('[aria-current="page"]');
+  if (nav && active)
+    nav.scrollLeft = Math.max(0, active.offsetLeft - nav.offsetLeft - 20);
+}

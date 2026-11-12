@@ -1,0 +1,1067 @@
+/* Shared with the public homepage: midnight navy, warm paper and gold. */
+.application.enterprise,
+.application.access-page {
+  --ink: #102c3c;
+  --muted: #586771;
+  --green: #183d4c;
+  --lime: #dca553;
+  --paper: #f8f5ef;
+  --line: #e1ddd5;
+  --radius: 14px;
+  --white: #fff;
+  --shadow: none;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Hoslink Sans", Helvetica, sans-serif;
+  caret-color: #96631f;
+  accent-color: #183d4c;
+}
+.application.enterprise ::selection,
+.application.access-page ::selection {
+  background: #edc586;
+  color: #102c3c;
+}
+.application.enterprise .sidebar {
+  width: 264px;
+  background: #0c2635;
+  padding: 25px 18px 20px;
+  border: 0;
+  color: #f9f2e8;
+  scrollbar-color: #6f858e #0c2635;
+  scrollbar-width: thin;
+}
+.workspace-brand {
+  display: inline-block;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.workspace-brand img {
+  display: block;
+  width: 145px;
+  height: auto;
+  object-fit: contain;
+}
+.establishment-context {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 28px 8px 24px;
+  padding: 18px 0;
+  border-block: 1px solid #ffffff26;
+  line-height: 1.4;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.establishment-context > .icon {
+  flex-shrink: 0;
+  color: #e6b975;
+  width: 24px;
+  height: 24px;
+}
+.establishment-context small {
+  display: block;
+  font-size: 11px;
+  margin-top: 6px;
+  color: #bbcbd0;
+}
+.application.enterprise .sidebar nav a {
+  color: #cbd6d8;
+  gap: 13px;
+  min-height: 45px;
+  padding: 11px 13px;
+  margin: 3px 0;
+  border-radius: 8px;
+}
+.application.enterprise .sidebar nav a span {
+  font-size: 13px;
+  font-weight: 500;
+}
+.application.enterprise .sidebar nav .icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.application.enterprise .sidebar nav a[aria-current] {
+  background: #e9bd7e;
+  color: #102c3c;
+  box-shadow: none;
+}
+.application.enterprise .sidebar nav a:hover {
+  background: #234351;
+  color: #fff5e7;
+}
+.application.enterprise .sidebar nav a[aria-current]:hover {
+  background: #f0ca93;
+  color: #102c3c;
+}
+.application.enterprise .sidebar-bottom {
+  padding: 18px 10px 0;
+  border-top: 1px solid #ffffff26;
+  margin-top: auto;
+}
+.application.enterprise .sidebar-bottom .presentation-access {
+  color: #d9b885;
+  gap: 12px;
+  margin: 0;
+}
+.application.enterprise .logout {
+  color: #cbd6d8;
+  min-height: 44px;
+  gap: 10px;
+  font-size: 12px;
+  justify-content: flex-start;
+  border-radius: 4px;
+}
+.application.enterprise .logout .icon {
+  width: 16px;
+  height: 16px;
+}
+.application.enterprise .logout:hover {
+  background: transparent;
+  color: #fff;
+}
+.application.enterprise .workspace {
+  width: calc(100% - 264px);
+  margin-left: 264px;
+  min-width: 0;
+}
+.application.enterprise .topbar {
+  min-height: 88px;
+  background: #f8f5ef;
+  border-bottom: 1px solid var(--line);
+  padding: 18px 44px;
+  font-size: 13px;
+  color: #536873;
+}
+.application.enterprise .identity {
+  font-size: 13px;
+  color: #102c3c;
+}
+.application.enterprise .identity small {
+  color: #586771;
+  font-size: 11px;
+}
+.application.enterprise .avatar {
+  background: #e9dfcd;
+  color: #66471e;
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+.application.enterprise main {
+  max-width: 1400px;
+  padding: 42px 44px 70px;
+  min-height: calc(100vh - 164px);
+}
+.application.enterprise h1,
+.application.access-page h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 40px;
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  color: #102c3c;
+  text-wrap: balance;
+}
+.application.enterprise h2 {
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: #102c3c;
+  font-weight: 600;
+}
+.application.enterprise h3 {
+  color: #102c3c;
+}
+.application.enterprise p,
+.application.access-page p {
+  color: #586771;
+}
+.application.enterprise .page-heading {
+  margin-bottom: 30px;
+  gap: 22px;
+}
+.application.enterprise .page-heading h1 {
+  margin-bottom: 12px;
+}
+.application.enterprise .page-heading p {
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 65ch;
+  margin: 0;
+}
+.application.enterprise button,
+.application.enterprise .button,
+.application.access-page button,
+.application.access-page .button {
+  background: #e9bd7e;
+  color: #102c3c;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 13px 21px;
+  min-height: 46px;
+  font-size: 13px;
+  gap: 12px;
+  font-weight: 600;
+  box-shadow: none;
+}
+.application.enterprise button:hover,
+.application.enterprise .button:hover,
+.application.access-page button:hover,
+.application.access-page .button:hover {
+  background: #dca553;
+  border-color: transparent;
+  color: #102c3c;
+}
+.application.enterprise button.secondary,
+.application.enterprise .button.secondary,
+.application.access-page .secondary {
+  background: transparent;
+  border: 1px solid #a9b4b6;
+  color: #183d4c;
+}
+.application.enterprise button.secondary:hover,
+.application.enterprise .button.secondary:hover,
+.application.access-page .secondary:hover {
+  background: #ebe8e0;
+  border-color: #586771;
+  color: #102c3c;
+}
+.application.enterprise .danger {
+  color: #a13232 !important;
+}
+.application.enterprise .danger:hover {
+  background: #faeded !important;
+  border-color: #d3a9a9 !important;
+}
+.application.enterprise button:disabled,
+.application.access-page button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.application.enterprise .button .icon,
+.application.access-page button .icon {
+  height: 18px;
+  width: 18px;
+}
+.application.enterprise .card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  box-shadow: none;
+  padding: 26px;
+}
+.application.enterprise .card h2 {
+  margin-bottom: 14px;
+}
+.application.enterprise .metrics {
+  gap: 16px;
+}
+.application.enterprise .metric {
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: none;
+  border-radius: 12px;
+}
+.application.enterprise .metric strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  color: #102c3c;
+}
+.application.enterprise .metric-label {
+  color: #586771;
+}
+.application.enterprise .section-heading {
+  gap: 16px;
+  margin-bottom: 18px;
+  align-items: flex-start;
+}
+.application.enterprise input,
+.application.enterprise select,
+.application.enterprise textarea,
+.application.access-page input,
+.application.access-page select,
+.application.access-page textarea {
+  background: #fff;
+  border: 1px solid #b4bebf;
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-height: 46px;
+  color: #102c3c;
+  font-size: 14px;
+  max-width: 100%;
+}
+.application.enterprise label,
+.application.access-page label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #183d4c;
+}
+.application.enterprise input::placeholder,
+.application.enterprise textarea::placeholder,
+.application.access-page input::placeholder {
+  color: #65747b;
+  opacity: 1;
+}
+.application.enterprise :focus-visible,
+.application.access-page :focus-visible {
+  outline: 3px solid #ae7730;
+  outline-offset: 4px;
+}
+.application.enterprise input:focus,
+.application.enterprise textarea:focus,
+.application.access-page input:focus {
+  border-color: #96631f;
+  box-shadow: none;
+}
+.application.enterprise .badge {
+  border-radius: 999px;
+  line-height: 1.5;
+  padding: 5px 11px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.application.enterprise .badge.active {
+  background: #e6f1e9;
+  color: #285239;
+}
+.application.enterprise .badge.pending {
+  background: #faf0db;
+  color: #76531f;
+}
+.application.enterprise .badge.suspended {
+  background: #f8e5e1;
+  color: #913e2f;
+}
+.application.enterprise .badge.ended {
+  background: #eae8e3;
+  color: #586771;
+}
+.application.enterprise .notice,
+.application.access-page .notice {
+  border: 1px solid #d6b17a;
+  border-radius: 10px;
+  border-left-width: 1px;
+  background: #fff4de;
+  color: #684713;
+  padding: 17px 20px;
+  font-size: 14px;
+}
+.application.enterprise .notice.success {
+  background: #edf5ee;
+  border-color: #afcbb6;
+  color: #285239;
+}
+.application.enterprise .directory-heading {
+  background: #0c2635;
+  border-radius: 14px;
+  padding: 32px 36px;
+  min-height: 190px;
+  color: #fff6e9;
+  overflow: hidden;
+}
+.application.enterprise .directory-heading h1 {
+  color: #fff6e9;
+  font-size: 38px;
+}
+.application.enterprise .directory-heading p {
+  color: #cfdbde;
+}
+.application.enterprise .directory-heading:after {
+  opacity: 0.8;
+  mask-image: linear-gradient(90deg, transparent, #000 38%);
+}
+.application.enterprise .filter-form {
+  padding: 22px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  gap: 16px;
+  box-shadow: none;
+}
+.application.enterprise .listing {
+  border: 1px solid var(--line);
+  box-shadow: none;
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.application.enterprise .listing:hover {
+  border-color: #ad8753;
+  box-shadow: none;
+  transform: none;
+}
+.application.enterprise .listing h2,
+.application.enterprise .listing h3 {
+  font-size: 19px;
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+.application.enterprise .listing .text-action,
+.application.enterprise .text-action {
+  color: #80551d;
+}
+.application.enterprise .conversation-row {
+  border-color: var(--line);
+  padding-block: 20px;
+}
+.application.enterprise .conversation-row:hover {
+  background: #faf7f1;
+}
+.application.enterprise .empty {
+  background: #faf7f1;
+  border: 1px dashed #cfc6b6;
+  border-radius: 12px;
+  padding: 28px;
+  color: #586771;
+}
+.application.enterprise .empty h2,
+.application.enterprise .empty h3 {
+  color: #183d4c;
+}
+.application.enterprise footer {
+  border-color: var(--line);
+  padding: 22px 44px;
+  font-size: 11px;
+  color: #586771;
+}
+.security-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 40px;
+  align-items: start;
+}
+.security-settings {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  padding: 0 30px;
+}
+.security-section {
+  padding: 28px 0;
+  border-bottom: 1px solid var(--line);
+}
+.security-section:last-child {
+  border-bottom: 0;
+}
+.security-section p {
+  font-size: 14px;
+  line-height: 1.75;
+  max-width: 65ch;
+}
+.security-section .section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+.security-section .section-heading h2 {
+  margin: 0 0 7px;
+}
+.security-section .section-heading p {
+  margin: 0;
+}
+.security-section form {
+  max-width: 440px;
+  margin-top: 20px;
+}
+.security-section .section-heading > .icon {
+  width: 24px;
+  height: 24px;
+  color: #8e652b;
+  flex-shrink: 0;
+}
+.security-confirmation {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #285239 !important;
+}
+.security-confirmation .icon {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+}
+.security-disclosure {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  margin-top: 22px;
+  font-size: 13px;
+}
+.security-disclosure summary,
+.backup-disclosure summary {
+  cursor: pointer;
+  min-height: 36px;
+  color: #4f5f68;
+  font-weight: 500;
+}
+.security-aside {
+  background: #0c2635;
+  border-radius: 14px;
+  padding: 30px;
+  color: #fff6e9;
+}
+.application.enterprise .security-aside h2 {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 400;
+  color: #fff6e9;
+  margin: 22px 0 16px;
+}
+.application.enterprise .security-aside p {
+  color: #c6d4d8;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.security-aside > .icon {
+  width: 32px;
+  height: 32px;
+  color: #e6b975;
+}
+.security-aside a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 20px;
+  font-size: 12px;
+  color: #e6b975;
+}
+.security-aside a .icon {
+  width: 17px;
+  height: 17px;
+}
+.enrollment-grid {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 24px 0;
+}
+#totp-qr {
+  max-width: 100%;
+  border-radius: 10px;
+}
+#backup-codes {
+  padding: 20px;
+  background: #f8f5ef;
+  border-radius: 10px;
+  overflow: auto;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #183d4c;
+  columns: 2;
+}
+#auth-status:empty {
+  display: none;
+}
+#auth-status:not(:empty) {
+  background: #fff2dc;
+  color: #684713;
+  border: 1px solid #d6b17a;
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+.access-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(360px, 44%) minmax(0, 1fr);
+}
+.access-story {
+  position: relative;
+  background: #0c2635;
+  min-height: 100vh;
+  padding: 32px 50px;
+  color: #fff6e9;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.access-story-copy {
+  margin: 48px 0 28px;
+  position: relative;
+  z-index: 1;
+}
+.access-story h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 42px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: #fff6e9;
+  margin: 0 0 18px;
+}
+.application.access-page .access-story p {
+  color: #cfdbde;
+  font-size: 14px;
+  max-width: 37ch;
+  line-height: 1.8;
+}
+.access-story figure {
+  margin: 0;
+  flex: 1;
+  min-height: 230px;
+  position: relative;
+  max-height: 430px;
+}
+.access-story figure img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 430px;
+  object-fit: cover;
+  border-radius: 210px 210px 0 0;
+  position: absolute;
+  inset: 0;
+}
+.access-story figcaption {
+  position: absolute;
+  bottom: 12px;
+  left: 16px;
+  color: #fff;
+  background: #0c2635d9;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.access-back {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-top: 26px;
+  color: #e6b975;
+  font-size: 13px;
+  min-height: 40px;
+}
+.access-back .icon {
+  width: 20px;
+  height: 20px;
+}
+.application.access-page main {
+  width: 100%;
+  max-width: 600px;
+  min-width: 0;
+  padding: 42px 48px;
+  align-self: center;
+  margin: auto;
+}
+.application.access-page .back {
+  display: inline-flex;
+  margin-bottom: 34px;
+  color: #586771;
+  font-size: 13px;
+  min-height: 24px;
+  align-items: center;
+}
+.application.access-page .auth-wrap {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+.application.access-page .auth-wrap > h1 {
+  font-size: 40px;
+  margin-bottom: 28px;
+}
+.application.access-page .auth-card {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  margin: 0;
+}
+.application.access-page .auth-card h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #183d4c;
+}
+.application.access-page .auth-card p,
+.application.access-page .auth-card small {
+  font-size: 13px;
+  color: #586771;
+}
+.application.access-page .auth-card a {
+  color: #80551d;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.application.access-page form button {
+  margin-top: 8px;
+}
+.application.access-page .auth-card form button,
+.application.access-page form[data-auth="totp"] > button {
+  width: 100%;
+  justify-content: space-between;
+}
+.access-privacy {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  margin-top: 32px !important;
+  font-size: 11px !important;
+  line-height: 1.7;
+}
+.access-privacy .icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #80551d;
+}
+.challenge-heading > .icon {
+  width: 32px;
+  height: 32px;
+  color: #96631f;
+  margin-bottom: 20px;
+}
+.challenge-heading h1 {
+  margin-bottom: 18px;
+}
+.challenge-heading p {
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+.application .otp-input {
+  font-size: 26px;
+  letter-spacing: 0.25em;
+  font-variant-numeric: tabular-nums;
+  min-height: 62px;
+  max-width: 300px;
+}
+.application.access-page .trust-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 22px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 500;
+  cursor: pointer;
+}
+.application.access-page .trust-choice input {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex-shrink: 0;
+  margin: 3px 0 0;
+  padding: 0;
+  accent-color: #183d4c;
+}
+.trust-choice small {
+  display: block;
+  color: #586771;
+  font-weight: 400;
+  font-size: 11px;
+  margin-top: 5px;
+}
+.backup-disclosure {
+  border-block: 1px solid var(--line);
+  padding: 18px 0 10px;
+  margin: 26px 0;
+}
+.backup-disclosure p {
+  font-size: 13px;
+}
+@media (min-width: 1500px) {
+  .access-story {
+    padding: 42px 72px;
+  }
+  .access-story h2 {
+    font-size: 48px;
+  }
+  .access-story-copy {
+    margin-top: 65px;
+  }
+}
+@media (max-width: 1150px) {
+  .application.enterprise main {
+    padding: 32px 28px 50px;
+  }
+  .application.enterprise .topbar {
+    padding: 18px 28px;
+  }
+  .security-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .security-aside {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 0 20px;
+  }
+  .security-aside > .icon {
+    grid-row: 1/4;
+  }
+  .application.enterprise .security-aside h2 {
+    margin-top: 0;
+  }
+  .security-aside p,
+  .security-aside a {
+    grid-column: 2;
+  }
+  .access-story {
+    padding: 30px;
+  }
+  .access-story h2 {
+    font-size: 36px;
+  }
+  .application.access-page main {
+    padding: 36px;
+  }
+}
+@media (max-width: 760px) {
+  .application.enterprise .shell {
+    display: block;
+  }
+  .application.enterprise .sidebar {
+    position: static;
+    width: 100%;
+    padding: 16px 20px 12px;
+    overflow: visible;
+    display: block;
+  }
+  .application.enterprise .workspace-brand img {
+    width: 114px;
+  }
+  .application.enterprise .establishment-context {
+    position: absolute;
+    top: 22px;
+    right: 20px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 12px;
+    max-width: 48%;
+  }
+  .establishment-context > .icon {
+    display: none;
+  }
+  .establishment-context small {
+    font-size: 10px;
+    margin-top: 3px;
+  }
+  .application.enterprise .sidebar nav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding: 16px 0 4px;
+    scrollbar-width: thin;
+  }
+  .application.enterprise .sidebar nav a {
+    flex-shrink: 0;
+    min-height: 42px;
+    margin: 0;
+    padding: 9px 12px;
+    gap: 8px;
+  }
+  .application.enterprise .sidebar nav a span {
+    font-size: 12px;
+  }
+  .application.enterprise .sidebar-bottom {
+    display: none !important;
+  }
+  .application.enterprise .workspace {
+    width: 100%;
+    margin: 0;
+  }
+  .application.enterprise .topbar {
+    min-height: 72px;
+    padding: 12px 20px;
+    gap: 12px;
+    font-size: 11px;
+  }
+  .application.enterprise .identity {
+    font-size: 12px;
+  }
+  .application.enterprise main {
+    padding: 28px 20px 42px;
+    min-height: 60vh;
+  }
+  .application.enterprise h1,
+  .application.access-page h1 {
+    font-size: 33px;
+  }
+  .application.enterprise .page-heading {
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .application.enterprise .page-heading > .button {
+    min-height: 43px;
+  }
+  .application.enterprise .card {
+    padding: 22px;
+  }
+  .application.enterprise footer {
+    padding: 20px;
+    flex-wrap: wrap;
+  }
+  .security-settings {
+    padding: 0 22px;
+  }
+  .security-section {
+    padding: 24px 0;
+  }
+  .security-aside {
+    display: block;
+    padding: 24px;
+  }
+  .security-aside > .icon {
+    margin-bottom: 16px;
+  }
+  .security-aside h2 br {
+    display: none;
+  }
+  .security-section .section-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .security-section button {
+    width: 100%;
+    font-size: 12px;
+  }
+  .application.enterprise .directory-heading {
+    padding: 26px 22px 165px;
+  }
+  .application.enterprise .directory-heading h1 {
+    font-size: 33px;
+  }
+  .access-shell {
+    display: block;
+  }
+  .access-story {
+    min-height: 0;
+    padding: 16px 22px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .access-story .workspace-brand img {
+    width: 112px;
+  }
+  .access-story-copy,
+  .access-story figure {
+    display: none;
+  }
+  .access-back {
+    margin: 0;
+    font-size: 11px;
+  }
+  .access-back .icon {
+    width: 16px;
+    height: 16px;
+  }
+  .application.access-page main {
+    padding: 30px 24px 40px;
+    max-width: 520px;
+  }
+  .application.access-page .auth-wrap > h1 {
+    font-size: 33px;
+  }
+  .application.access-page .back {
+    margin-bottom: 28px;
+  }
+  .application .otp-input {
+    max-width: 100%;
+    font-size: 24px;
+  }
+  .application.access-page .trust-choice {
+    font-size: 12px;
+  }
+  .access-privacy {
+    font-size: 11px !important;
+  }
+  .application.enterprise .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .application.enterprise .metric {
+    padding: 20px;
+  }
+  .application.enterprise .metric strong {
+    font-size: 32px;
+  }
+  .application.enterprise .metric small {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .application.enterprise *,
+  .application.access-page * {
+    scroll-behavior: auto;
+    transition: none;
+  }
+}
+
+/* Final component states after desktop/mobile review. */
+.application.enterprise .sidebar-bottom button.logout {
+  background: transparent;
+  border: 0;
+  color: #cbd6d8;
+  padding: 8px 0;
+  border-radius: 4px;
+}
+.application.enterprise .sidebar-bottom button.logout:hover {
+  color: #fff6e9;
+  background: transparent;
+}
+.application.access-page label.trust-choice {
+  flex-direction: row;
+}
+.application.access-page input.otp-input,
+.application.enterprise input.otp-input {
+  font-size: 26px;
+  letter-spacing: 0.25em;
+  min-height: 62px;
+  max-width: 300px;
+}
+.application.enterprise .page-dashboard > .page-heading {
+  background: #0c2635;
+  border-radius: 14px;
+  padding: 32px;
+  align-items: center;
+}
+.application.enterprise .page-dashboard > .page-heading h1 {
+  color: #fff6e9;
+  font-size: 36px;
+}
+.application.enterprise .page-dashboard > .page-heading p {
+  color: #c6d4d8;
+}
+@media (max-width: 760px) {
+  .application.enterprise .page-dashboard > .page-heading {
+    padding: 26px 22px;
+  }
+  .application.enterprise .page-dashboard > .page-heading h1 {
+    font-size: 32px;
+  }
+  .application.access-page input.otp-input {
+    max-width: 100%;
+  }
+}
+
+.mobile-logout {
+  display: none;
+}
+@media (max-width: 760px) {
+  .application.enterprise .mobile-logout {
+    display: block;
+    margin: 0;
+  }
+  .application.enterprise .mobile-logout button {
+    padding: 10px;
+    min-height: 40px;
+    background: transparent;
+    color: #183d4c;
+    border: 1px solid #b4bebf;
+  }
+  .mobile-logout .icon {
+    width: 17px;
+    height: 17px;
+  }
+}
+.discovery-hero{background:linear-gradient(90deg,#0c2635ef,#0c263580),url('/static/media/hotel.webp') center 48%/cover;border-radius:14px;padding:38px;color:white}.application.enterprise .discovery-hero h1{color:#fff8ee;font-size:38px}.application.enterprise .discovery-hero p{color:#e3e8e8}.discovery-search{margin-top:28px}.discovery-tabs{display:flex;gap:5px}.application.enterprise .discovery-tabs button{border-radius:10px 10px 0 0;background:#fff;color:#183d4c}.application.enterprise .discovery-tabs button.selected{background:#e9bd7e}.discovery-search-fields{display:flex;align-items:end;gap:12px;padding:12px;background:#fff;border-radius:0 12px 12px 12px}.discovery-search-fields label{flex:1;margin:0}.discovery-search-fields input{width:100%}.discovery-quick{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}.discovery-quick a{background:#fff;color:#183d4c;padding:9px 13px;border-radius:8px;font-size:12px}.discovery-content{display:grid;grid-template-columns:230px minmax(0,1fr);gap:25px;margin-top:28px}.discovery-filters{background:#fff;border:1px solid #e1ddd5;border-radius:12px;padding:20px;height:fit-content}.discovery-filters a{font-size:12px;color:#80551d}.discovery-filters label{display:block;margin:18px 0}.discovery-filters input,.discovery-filters select{width:100%}.discovery-filters button{width:100%}.discovery-results .results-heading{margin:0 0 14px}.discovery-list{display:grid;gap:14px}.discovery-row{display:grid;grid-template-columns:180px minmax(0,1fr);gap:22px;background:#fff;border:1px solid #e1ddd5;border-radius:12px;padding:12px}.discovery-image{position:relative;min-height:150px}.discovery-image img{width:100%;height:100%;position:absolute;object-fit:cover;border-radius:8px}.discovery-image span{position:absolute;bottom:8px;left:8px;background:#0c2635db;color:white;font-size:10px;padding:3px 6px}.discovery-row-body h3{font-size:19px;margin:2px 0 9px}.discovery-row-body p{font-size:13px;margin:9px 0}.discovery-category{background:#f5e9d4;color:#694716;border-radius:999px;padding:4px 10px;font-size:11px}.discovery-row-body .button{min-height:38px;padding:8px 15px}.discovery-location{color:#586771}@media(max-width:760px){.discovery-hero{padding:25px 20px}.application.enterprise .discovery-hero h1{font-size:30px}.discovery-search-fields{display:grid}.discovery-tabs button{flex:1}.discovery-content{grid-template-columns:1fr}.discovery-row{grid-template-columns:1fr}.discovery-image{height:180px}.discovery-filters{padding:18px}}

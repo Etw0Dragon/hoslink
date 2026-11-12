@@ -1,31 +1,13 @@
-# Charge les variables locales pour Go et Docker Compose.
-ifneq (,$(wildcard .env))
-include .env
-export
-endif
-
-.PHONY: run test test-integration build db fmt
+.PHONY: run build test test-integration db migrate
 run:
-	go run ./cmd/server
-test:
-	go test -race ./...
+	npm run dev
 build:
-	mkdir -p bin
-	go build -buildvcs=false -trimpath -o bin/partenaires ./cmd/server
-db:
-	docker compose up -d --wait db
-	docker compose exec -T db psql -v ON_ERROR_STOP=1 -U partenaires -d postgres < scripts/create-test-db.sql
-fmt:
-	gofmt -w cmd internal web public
-
+	npm run build
+test:
+	npm test
 test-integration:
-	go test -race ./internal/app -run Integration -v
-
-# Sortie statique uniquement ; aucun serveur ou accès PostgreSQL.
-.PHONY: preview preview-test
-PAGES_BASE_PATH ?= /hoslink
-PAGES_OUT ?= dist
-preview:
-	go run ./cmd/preview -out "$(PAGES_OUT)" -base-path "$(PAGES_BASE_PATH)"
-preview-test:
-	go test ./internal/preview ./web
+	node --env-file=.env.node --import tsx --test tests/integration.test.ts
+db:
+	docker compose --env-file .env.node -f compose.yaml -f compose.dev.yaml up -d --wait db
+migrate:
+	npm run migrate
