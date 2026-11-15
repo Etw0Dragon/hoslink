@@ -88,14 +88,18 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
         try { return referer ? new URL(referer).origin : ""; } catch { return ""; }
       })();
       if (origin ? origin !== cfg.BASE_URL : refererOrigin !== cfg.BASE_URL)
-        return c.text("Origine refusée.", 403);
+        return c.req.path.startsWith("/api/")
+          ? c.json({ error: "Origine refusée. Vérifiez le domaine configuré dans BASE_URL." }, 403)
+          : c.text("Origine refusée.", 403);
       const f = await c.req.parseBody(),
         provided = String(f.csrf || "");
       if (
         !/^[a-f0-9]{64}$/.test(provided) ||
         !timingSafeEqual(Buffer.from(provided), Buffer.from(csrf))
       )
-        return c.text("Session de formulaire expirée.", 403);
+        return c.req.path.startsWith("/api/")
+          ? c.json({ error: "Session de formulaire expirée. Rechargez la page puis réessayez." }, 403)
+          : c.text("Session de formulaire expirée.", 403);
     }
     const session = await auth.api.getSession({ headers: c.req.raw.headers });
     if (session) {
@@ -183,6 +187,8 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
     "/renvoyer-verification",
     "/administration",
     "/apres-connexion",
+    // Verified users need geocoding while preparing their first establishment.
+    "/api/maps/geocode",
   ];
   const ownerPatterns = [
     /^\/etablissement$/,
@@ -195,19 +201,21 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
   app.use("*", async (c, next) => {
     const path = c.req.path,
       u = c.get("user");
-    if (!u) return c.redirect("/connexion", 303);
+    if (!u) return c.req.path.startsWith("/api/")
+      ? c.json({ error: "Votre session a expiré. Reconnectez-vous puis réessayez." }, 401)
+      : c.redirect("/connexion", 303);
     // Every private route and mutation is blocked until an administrator has confirmed enrollment.
     if (
       u.Admin &&
       !u.TwoFactor &&
       !["/securite", "/deconnexion"].includes(path)
     )
-      return c.redirect("/securite", 303);
+      return c.req.path.startsWith("/api/") ? c.json({error:"Confirmez la sécurité du compte puis réessayez."},403) : c.redirect("/securite", 303);
     if (
       !u.Verified &&
       !["/compte", "/deconnexion", "/renvoyer-verification"].includes(path)
     )
-      return c.redirect("/compte", 303);
+      return c.req.path.startsWith("/api/") ? c.json({error:"Confirmez votre adresse email puis réessayez."},403) : c.redirect("/compte", 303);
     if (
       !basePrivate.includes(path) &&
       !path.startsWith("/fiche/photos/") &&
