@@ -229,3 +229,7 @@ Vérifications : typage, compilation, 12 tests unitaires réussis ; PostgreSQL 1
 ## Refonte de Mon établissement
 
 Page d’édition à largeur maîtrisée, bandeau établissement bleu nuit, cartes de sélection photo et galerie avec boutons français, aperçu local et nom du fichier sélectionné. Contrôles JPEG/PNG et 4 Mo côté navigateur en complément des contrôles serveur. Champs adresse/commune regroupés, galerie compacte et sauvegarde mise en évidence. Typage/build réussis ; rendu Chromium sur données locales de recette à 1440 et 390 px sans débordement horizontal. Tuiles et logo volontairement non chargés par cette recette isolée.
+
+## Commandes reset et démo cartographique
+
+À la demande du porteur : `db:reset`/`dist/reset-db.js` vide explicitement les tables applicatives et conserve schéma/migrations ; confirmation obligatoire incluant hôte, port et base. Seed démo : noms marqués DÉMO, adresses de trois repères publics parisiens et coordonnées intégrées pour chaque type d’établissement. Procédure Coolify documentée dans OPERATIONS.md. Vérifications sur PostgreSQL 18 jetable : refus sans confirmation, création de six fiches localisées, reset des comptes et établissements et conservation des migrations réussis. Aucune base du projet ou distante réinitialisée.

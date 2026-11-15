@@ -111,8 +111,23 @@ DEMO_SEED_PASSWORD='mot-de-passe-de-demo-unique' node dist/seed-demo.js --hotels
 
 Chaque quantité est comprise entre 0 et 25. La commande est réexécutable : les emails déjà présents sont ignorés. Tous les nouveaux comptes partagent le mot de passe transmis à la commande. Choisir un mot de passe réservé à ces faux comptes et ne pas le conserver comme variable Coolify. En `production` ou `test-prod`, le drapeau de confirmation doit correspondre exactement à `hôte/base`; l'outil affiche la valeur attendue s'il manque. Les comptes ne sont pas administrateurs et ne reçoivent pas de 2FA administrateur.
 
-Les données restent en base après le retour de `test-prod` à `production`. Le seed n'inclut pas de suppression : toute suppression doit être une opération SQL contrôlée, en tenant compte des messages et partenariats associés. Ne pas utiliser d'adresses réelles ni de données réelles d'établissements dans les fiches fictives.
+Les données restent en base après le retour de `test-prod` à `production`. Le seed n'inclut pas de suppression : toute suppression doit être une opération SQL contrôlée, en tenant compte des messages et partenariats associés. Les fiches sont explicitement marquées DÉMO : les noms sont fictifs et les adresses sont celles de repères publics, sans affiliation avec leurs exploitants.
 
 ### Notifications et offres professionnelles
 
 Appliquer les migrations 005 et 006 avant démarrage de cette version. Le worker applicatif traite la file de notifications email toutes les minutes (20 envois par passage), avec nouvelle tentative après 15 minutes et arrêt après cinq échecs. Les emails utilisent SMTP_URL et MAIL_FROM ; sans SMTP ils sont déposés dans MAIL_DIR. Ils contiennent un lien vers la discussion ou les partenariats, sans message privé. Les droits sont revérifiés lors de l’ouverture. Une notification déjà lue n’est plus envoyée ; la suppression de l’appartenance empêche l’envoi. Un arrêt entre l’envoi SMTP et sa confirmation en base peut produire un doublon. Surveiller les échecs persistants avec `SELECT count(*) FROM notifications WHERE email_sent_at IS NULL AND email_attempts >= 5`. Les compteurs se mettent à jour à la navigation ; aucun push navigateur ni réception temps réel.
+
+### Remise à zéro et démo cartographique
+
+Arrêter l’application et sauvegarder la base avant la remise à zéro. La commande supprime tous les comptes (administrateurs inclus), sessions, photos, messages, accords et notifications. Le schéma et les migrations restent en place. Appliquer les migrations avant son utilisation. Aucun reset automatique au démarrage.
+
+Dans la console de l’image applicative (adapter hôte, port et nom de base) :
+
+```sh
+node dist/reset-db.js --confirm-reset=db:5432/hoslink_node
+DEMO_SEED_PASSWORD='un-mot-de-passe-demo-long-et-unique' node dist/seed-demo.js --hotels=3 --providers=3 --confirm-production=db/hoslink_node
+```
+
+En local : `npm run db:reset -- --confirm-reset=localhost:5432/hoslink_node` puis `DEMO_SEED_PASSWORD='un-mot-de-passe-demo-long-et-unique' npm run seed:demo -- --hotels=3 --providers=3`. Le paramètre confirm-production est obligatoire en production et test-prod.
+
+Comptes `hoslink-demo-hotel-01@example.invalid` et `hoslink-demo-provider-01@example.invalid` (jusqu’au nombre demandé), mot de passe fourni dans DEMO_SEED_PASSWORD. Connexion possible sans email réel. Chaque côté voit les trois repères parisiens (Tour Eiffel, Carrousel du Louvre, musée d’Orsay), avec coordonnées intégrées, sans appel Nominatim. Au-delà de trois fiches par type, les repères se répètent et les marqueurs peuvent se superposer. Le seed ignore les comptes déjà présents : effectuer le reset pour remplacer les anciennes démos. Ne jamais présenter ces fiches comme des entreprises réelles.
