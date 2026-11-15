@@ -19,6 +19,11 @@ async function geocode(address: string, city: string): Promise<Place[]> {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ address, city, csrf: csrf() }),
   });
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    const body = (await response.text()).slice(0, 160);
+    throw new Error(body || `Recherche impossible (HTTP ${response.status}).`);
+  }
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || "Recherche d’adresse impossible.");
   return result.places as Place[];
