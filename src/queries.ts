@@ -26,8 +26,8 @@ export const queries = {
       fields: ["ID", "Name", "Subject", "Quote", "Date"],
     },
     {
-      sql: "SELECT id,name,category,station,city,description FROM establishments WHERE status='approved' AND id<>$1 AND (($2='hotel' AND category<>'hotel') OR ($2<>'hotel' AND category='hotel')) ORDER BY created_at DESC,id DESC LIMIT 3",
-      fields: ["ID", "Name", "Category", "Station", "City", "Description"],
+      sql: "SELECT e.id,e.name,e.category,e.station,e.city,e.description,COALESCE((SELECT id FROM establishment_photos WHERE establishment_id=e.id AND kind='profile'),0) FROM establishments e WHERE e.status='approved' AND e.id<>$1 AND (($2='hotel' AND e.category<>'hotel') OR ($2<>'hotel' AND e.category='hotel')) ORDER BY e.created_at DESC,e.id DESC LIMIT 3",
+      fields: ["ID", "Name", "Category", "Station", "City", "Description", "PhotoID"],
     },
   ],
   account: [
@@ -38,13 +38,13 @@ export const queries = {
   ],
   directory: [
     {
-      sql: "SELECT id,name,category,station,city,description FROM establishments WHERE status='approved' AND id<>$1 AND ($2='' OR name ILIKE '%'||$2||'%' OR description ILIKE '%'||$2||'%') AND ($3='' OR category=$3 OR ($3='prestataires' AND category<>'hotel')) AND ($4='' OR station ILIKE '%'||$4||'%') ORDER BY name LIMIT 100",
-      fields: ["ID", "Name", "Category", "Station", "City", "Description"],
+      sql: "SELECT e.id,e.name,e.category,e.station,e.city,e.description,COALESCE((SELECT id FROM establishment_photos WHERE establishment_id=e.id AND kind='profile'),0) FROM establishments e WHERE e.status='approved' AND e.id<>$1 AND ($2='' OR e.name ILIKE '%'||$2||'%' OR e.description ILIKE '%'||$2||'%') AND ($3='' OR e.category=$3 OR ($3='prestataires' AND e.category<>'hotel')) AND ($4='' OR e.station ILIKE '%'||$4||'%') ORDER BY e.name LIMIT 100",
+      fields: ["ID", "Name", "Category", "Station", "City", "Description", "PhotoID"],
     },
   ],
   profile: [
     {
-      sql: "SELECT id,name,category,station,city,description,address,siret FROM establishments WHERE id=$1 AND status='approved'",
+      sql: "SELECT e.id,e.name,e.category,e.station,e.city,e.description,e.address,e.siret,COALESCE((SELECT id FROM establishment_photos WHERE establishment_id=e.id AND kind='profile'),0) FROM establishments e WHERE e.id=$1 AND e.status='approved'",
       fields: [
         "ID",
         "Name",
@@ -54,6 +54,7 @@ export const queries = {
         "Description",
         "Body",
         "Subject",
+        "PhotoID",
       ],
     },
   ],

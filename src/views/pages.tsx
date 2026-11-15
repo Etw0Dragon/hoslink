@@ -55,6 +55,22 @@ views["account"] = (d, p) =>
                   </div>`
                 : html``
             }
+            ${truth(d.User.EstID && d.User.Role === "owner")
+              ? html`<section class="card photo-manager">
+                  <h2>Photos de votre établissement</h2>
+                  <p>Photo de profil pour votre fiche dans l’annuaire. JPEG ou PNG, 4 Mo maximum par image.</p>
+                  ${truth(d.PhotoID) ? html`<img class="managed-profile-photo" src="/photos/${d.PhotoID}" alt="Photo de profil actuelle de ${d.User.EstName}" />` : html``}
+                  <form action="/fiche/photos" method="post" enctype="multipart/form-data">
+                    ${views["csrf"](d, p)}
+                    <label>Photo de profil<input type="file" name="profile" accept="image/jpeg,image/png" /></label>
+                    ${truth(d.User.EstCategory === "hotel")
+                      ? html`<label>Photos de l’hôtel (${d.GalleryRemaining} place(s) restante(s))<input type="file" name="gallery" accept="image/jpeg,image/png" ${truth(d.GalleryRemaining <= 0) ? html`disabled` : html``} /></label><small>Jusqu’à huit photos au total. Chaque envoi ajoute une photo à la galerie.</small>`
+                      : html``}
+                    <button>Enregistrer les photos</button>
+                  </form>
+                  ${truth(d.Photos) ? html`<div class="managed-gallery">${d.Photos.map((photo: ViewData) => html`<div><img src="/photos/${photo.ID}" alt="Photo de l’hôtel" /><form action="/fiche/photos/${photo.ID}/supprimer" method="post" data-confirm="Supprimer cette photo de l’hôtel ?">${views["csrf"](d, p)}<button class="secondary">Supprimer</button></form></div>`)}</div>` : html``}
+                </section>`
+              : html``}
             ${
               truth(d.Establishments)
                 ? html`<section class="card">
@@ -1132,13 +1148,13 @@ views["listing"] = (d, p) => html`
   <article class="listing card">
     <div class="listing-art photo-listing ${d.Category}">
       <img
-        src="${views["activity-image"](d.Category, p)}"
-        alt=""
+        src="${truth(d.PhotoID) ? `/photos/${d.PhotoID}` : views["activity-image"](d.Category, p)}"
+        alt="${truth(d.PhotoID) ? `Photo de ${d.Name}` : ""}"
         width="768"
         height="512"
         loading="lazy"
-      /><span class="illustration-label">Illustration d’activité</span
-      ><span class="category-label">${category(d.Category)}</span>
+      />${truth(d.PhotoID) ? html`` : html`<span class="illustration-label">Illustration d’activité</span>`}
+      <span class="category-label">${category(d.Category)}</span>
     </div>
     <div class="listing-content">
       <span class="verified-inline"
@@ -1306,11 +1322,11 @@ views["profile"] = (d, p) =>
   html`<a class="back" href="/annuaire">← Retour au réseau</a>
     <div class="profile-photo">
       <img
-        src="${views["activity-image"](d.Item.Category, p)}"
+        src="${truth(d.Item.PhotoID) ? `/photos/${d.Item.PhotoID}` : views["activity-image"](d.Item.Category, p)}"
         width="768"
         height="512"
-        alt="Illustration de la catégorie d’activité de cet établissement"
-      /><span>Visuel d’illustration de l’activité</span>
+        alt="${truth(d.Item.PhotoID) ? `Photo de ${d.Item.Name}` : "Illustration de la catégorie d’activité de cet établissement"}"
+      />${truth(d.Item.PhotoID) ? html`` : html`<span>Visuel d’illustration de l’activité</span>`}
     </div>
     <div class="profile-cover ${d.Item.Category}">
       <div>
@@ -1323,6 +1339,7 @@ views["profile"] = (d, p) =>
         ${truth(d.User.EstID !== d.Item.ID) ? html`<div class="actions">${truth(d.User.Role === "owner") ? html`<a class="button" href="#proposition">Proposer un partenariat ${views["arrow"](d, p)}</a>` : html``}<a class="button secondary" href="#contact">Contacter l’équipe</a></div>` : html``}
       </div>
     </div>
+    ${truth(d.Photos) ? html`<section class="hotel-gallery" aria-label="Photos de l’hôtel"><h2>Photos de l’hôtel</h2><div>${d.Photos.map((photo: ViewData) => html`<img src="/photos/${photo.ID}" alt="Photo de l’hôtel" loading="lazy" />`)}</div></section>` : html``}
     <div class="two-col">
       <section class="card">
         <h2>À propos de l’établissement</h2>

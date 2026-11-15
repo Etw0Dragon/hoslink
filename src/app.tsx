@@ -14,7 +14,7 @@ import { page, pageHandlers } from "./pages.js";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { profiles } from "./db/schema.js";
 import { business } from "./business.js";
-import { filters } from "./validation.js";
+import { filters, positiveId } from "./validation.js";
 import { Security, Challenge } from "./views/security.js";
 export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
   const app = new Hono<Env>();
@@ -36,13 +36,18 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
       referrerPolicy: "same-origin",
     }),
   );
-  app.use(
-    "*",
-    bodyLimit({
-      maxSize: 6 * 1024 * 1024,
-      onError: (c) => c.text("Formulaire trop volumineux.", 413),
-    }),
-  );
+  const regularBodyLimit = bodyLimit({
+    maxSize: 6 * 1024 * 1024,
+    onError: (c) => c.text("Formulaire trop volumineux.", 413),
+  });
+  const photoBodyLimit = bodyLimit({
+    maxSize: 10 * 1024 * 1024,
+    onError: (c) => c.text("Les photos dépassent la taille autorisée.", 413),
+  });
+  app.use("*", (c, next) => {
+    const limit = c.req.path === "/fiche/photos" ? photoBodyLimit : regularBodyLimit;
+    return limit(c, next);
+  });
   app.use("*", async (c, next) => {
     c.header("Cache-Control", "no-store");
     await next();
@@ -162,6 +167,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
     "/securite",
     "/securite/appareils/revoquer",
     "/etablissement",
+    "/fiche/photos",
     "/changer",
     "/invitation",
     "/deconnexion",
@@ -172,6 +178,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
   const ownerPatterns = [
     /^\/etablissement$/,
     /^\/fiche$/,
+    /^\/fiche\/photos(?:\/.*)?$/,
     /^\/equipe\/.*$/,
     /^\/partenariats(?:\/\d+\/[^/]+)?$/,
   ];
@@ -193,6 +200,8 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
       return c.redirect("/compte", 303);
     if (
       !basePrivate.includes(path) &&
+      !path.startsWith("/fiche/photos/") &&
+      !path.startsWith("/photos/") &&
       !path.startsWith("/administration/") &&
       (!u.EstID || u.Status !== "approved")
     )
@@ -267,6 +276,30 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
   } as const;
   for (const [path, name] of Object.entries(routes))
     app.get(path, (c) => handler(c, name));
+  app.get("/photos/:id", async (c) => {
+    const parsedID = positiveId.safeParse(c.req.param("id"));
+    if (!parsedID.success) return c.notFound();
+    const u = c.get("user")!,
+      photo = (
+        await pool.query(
+          `SELECT p.content_type,p.data FROM establishment_photos p
+ JOIN establishments e ON e.id=p.establishment_id
+ WHERE p.id=$1 AND ((e.status='approved' AND $2::boolean=true)
+   OR EXISTS(SELECT 1 FROM memberships m WHERE m.establishment_id=e.id AND m.user_id=$3))`,
+          [parsedID.data, u.Status === "approved", u.ID],
+        )
+      ).rows[0];
+    if (!photo) return c.notFound();
+    return new Response(new Uint8Array(photo.data), {
+      headers: {
+        "Content-Type": photo.content_type,
+        "Content-Length": String(photo.data.length),
+        "Content-Disposition": "inline",
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  });
   business(app, pool, cfg);
   app.onError((err, c) => {
     if (err instanceof HTTPException) return c.text(err.message, err.status);
