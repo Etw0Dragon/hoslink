@@ -156,6 +156,7 @@ export function Workspace({
                   ? "Administration Hoslink"
                   : "Mon espace professionnel"}
               </a>
+              <a href="/notifications" class="notification-link">Notifications {user.NotificationCount ? <span class="unread-badge">{user.NotificationCount}</span> : null}</a>
               <a class="identity" href="/securite">
                 <span class="avatar">{[...(user.Name || "?")][0]}</span>
                 <span>

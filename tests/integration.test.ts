@@ -380,6 +380,35 @@ test(
             /Établissement B/,
             "Le cadre cartographique doit limiter les résultats aux coordonnées visibles.",
           );
+          // Provider offers are owner-only; notification and unread state are private to the current establishment.
+          await pool.query("UPDATE establishments SET provider_offer=$1 WHERE id=$2",[{activities:"Kayak",languages:"Français anglais",area:"Loire"},other]);
+          assert.match(await (await browser.request("/annuaire?q=kayak+anglais")).text(),/Établissement B/);
+          assert.equal((await browser.request("/fiche/offre",{activities:"Kayak"})).status,403);
+          await pool.query("UPDATE establishments SET category='spa' WHERE id=$1",[eid]);
+          assert.equal((await browser.request("/fiche/offre",{activities:"Canoë",area:"Loire",seasons:"Été",languages:"Français",audience:"Familles",benefits:"Accueil partenaire"})).status,303);
+          assert.equal((await pool.query("SELECT provider_offer FROM establishments WHERE id=$1",[eid])).rows[0].provider_offer.activities,"Canoë");
+          await pool.query("UPDATE establishments SET category='hotel' WHERE id=$1",[eid]);
+          const { notify, deliverNotifications } = await import("../src/notifications.js");
+          await notify(pool,eid,"partnership",999,"Demande de test");
+          const nid=(await pool.query("SELECT id FROM notifications WHERE user_id=$1 AND establishment_id=$2 ORDER BY id DESC LIMIT 1",[uid,eid])).rows[0].id;
+          assert.match(await (await browser.request("/notifications")).text(),/Demande de test/);
+          await browser.request(`/notifications/${nid}/lire`,{});
+          assert.ok((await pool.query("SELECT read_at FROM notifications WHERE id=$1",[nid])).rows[0].read_at);
+          await notify(pool,eid,"message",999,"Message de test");
+          await deliverNotifications(pool,cfg);
+          assert.ok(Number((await pool.query("SELECT count(*) n FROM notifications WHERE email_sent_at IS NOT NULL")).rows[0].n)>0);
+          const foreignNotification=(await pool.query("INSERT INTO notifications(user_id,establishment_id,kind,entity_id,title) VALUES($1,$2,'message',999,'Notification privée autre établissement') RETURNING id",[uid,other])).rows[0].id;
+          assert.doesNotMatch(await (await browser.request("/notifications")).text(),/Notification privée autre établissement/);
+          await browser.request(`/notifications/${foreignNotification}/lire`,{});
+          assert.equal((await pool.query("SELECT read_at FROM notifications WHERE id=$1",[foreignNotification])).rows[0].read_at,null);
+          const chat=(await pool.query("INSERT INTO conversations(a,b,subject) VALUES($1,$2,'Chat test') RETURNING id",[Math.min(eid,other),Math.max(eid,other)])).rows[0].id;
+          await pool.query("INSERT INTO messages(conversation_id,sender_id,establishment_id,body) VALUES($1,$2,$3,'Nouveau reçu')",[chat,uid,other]);
+          const {queries}=await import("../src/queries.js");
+          let inbox=await pool.query(queries.conversations[0].sql,[eid,uid]);
+          assert.equal(Number(inbox.rows.find(r=>String(r.id)===String(chat)).count),1);
+          assert.equal((await browser.request(`/messages/${chat}`)).status,200);
+          inbox=await pool.query(queries.conversations[0].sql,[eid,uid]);
+          assert.equal(Number(inbox.rows.find(r=>String(r.id)===String(chat)).count),0);
           const geocoderServer = createServer((request, response) => {
             const query = new URL(request.url || "/", "http://localhost").searchParams;
             response.writeHead(200, { "Content-Type": "application/json" });

@@ -265,6 +265,21 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
       303,
     );
   });
+  app.use("*",async(c,next)=>{
+    const u=c.get("user");
+    if(u?.EstID) u.NotificationCount=Number((await pool.query("SELECT count(*) AS n FROM notifications WHERE user_id=$1 AND establishment_id=$2 AND read_at IS NULL",[u.ID,u.EstID])).rows[0].n);
+    await next();
+  });
+  app.get("/notifications", async c => {
+    const u=c.get("user")!;
+    const items=(await pool.query("SELECT id,title,kind,entity_id,read_at,to_char(created_at,'DD/MM/YYYY HH24:MI') AS date FROM notifications WHERE user_id=$1 AND establishment_id=$2 ORDER BY id DESC LIMIT 100",[u.ID,u.EstID])).rows;
+    return page(c,"notifications",{Notifications:items});
+  });
+  app.post("/notifications/:id/lire", async c => {
+    const u=c.get("user")!;
+    await pool.query("UPDATE notifications SET read_at=now() WHERE id=$1 AND user_id=$2 AND establishment_id=$3",[c.req.param("id"),u.ID,u.EstID]);
+    return c.redirect("/notifications",303);
+  });
   app.post("/api/maps/geocode", async (c) => {
     const user = c.get("user");
     if (!user?.Verified) return c.json({ error: "Connectez-vous avec un email vérifié." }, 403);

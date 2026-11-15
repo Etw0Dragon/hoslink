@@ -10,6 +10,7 @@ import {
   primaryKey,
   customType,
   doublePrecision,
+  jsonb,
 } from "drizzle-orm/pg-core";
 export const user = pgTable("auth_user", {
   id: text("id").primaryKey(),
@@ -103,6 +104,7 @@ export const establishments = pgTable("establishments", {
     .references(() => companies.id),
   siret: text("siret").notNull().unique(),
   name: text("name").notNull(),
+  providerOffer: jsonb("provider_offer").notNull().default({}),
   category: text("category").notNull(),
   station: text("station").notNull(),
   city: text("city").notNull(),
@@ -207,6 +209,7 @@ export const partnershipVersions = pgTable(
     ),
     version: integer("version").notNull(),
     terms: text("terms").notNull(),
+    details: jsonb("details").notNull().default({}),
     authorId: bigint("author_id", { mode: "number" })
       .notNull()
       .references(() => profiles.id),

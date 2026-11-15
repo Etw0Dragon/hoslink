@@ -1,3 +1,4 @@
+import { deliverNotifications } from "./notifications.js";
 import { serve } from "@hono/node-server";
 import { readConfig } from "./config.js";
 import { database } from "./db/index.js";
@@ -16,6 +17,7 @@ const worker = setInterval(async () => {
   running = true;
   try {
     await reconcile(pool);
+    await deliverNotifications(pool,cfg);
     await pool.query("DELETE FROM tokens WHERE expires_at<now()");
   } catch {
     console.error("capacity reconciliation failed");

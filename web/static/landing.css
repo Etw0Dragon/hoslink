@@ -12,6 +12,7 @@
 .landing .login-link { color:#fff7eb; border:1px solid #b2bfc4; padding:10px 18px; border-radius:999px; white-space:nowrap; font-size:12px; }
 .landing main { max-width:1440px; padding:0 5%; margin:0 auto; overflow:visible; }
 .landing main > .market-hero { margin-top:0; }
+.landing #auth-status:empty { display:none; margin:0; }
 .landing h1,.landing h2,.landing h3 { color:var(--market-ink); letter-spacing:-.025em; }
 .landing h2 { font-family:Georgia,'Times New Roman',serif; font-weight:400; font-size:clamp(32px,3.5vw,48px); line-height:1.14; }
 .landing p { font-size:16px; line-height:1.75; color:#536171; }

@@ -215,3 +215,13 @@ Les décisions commerciales et d’exploitation encore ouvertes sont détaillée
 ## Messagerie au format chat
 
 Interface à deux panneaux : liste des discussions, bulles reçues/envoyées distinguées par établissement, formulaire compact et pièces jointes PDF privées conservées. Adaptation mobile avec retour aux discussions. L’interface reste rendue côté serveur ; réception en temps réel et accusés de lecture non implémentés. Typage, compilation et 11 tests locaux réussis ; intégration PostgreSQL ignorée sans URL et recette visuelle navigateur restante.
+
+## Suivi partagé des partenariats
+
+Migration 005 : détails structurés conservés dans chaque version et bilans partagés identifiés par établissement et auteur. Formulaires de proposition/modification, dates de début/fin/renouvellement et historique enrichis. Rappels dans la liste des partenariats pour propositions en attente depuis sept jours et bilan/renouvellement dans sept jours ou dépassé. Bilans réservés aux responsables, lecture limitée aux parties ; aucune modification automatique de l’accord ni email envoyé. Typecheck, compilation et 12 tests réussis ; recette PostgreSQL et navigateur à effectuer avant déploiement. CGU/CGV non rédigées par cette évolution.
+
+## Notifications et offres structurées
+
+Migration 006 : notifications privées par membre/établissement avec file email persistante et tentatives différées ; positions de lecture individuelles par conversation ; offre prestataire en six champs distincts. Les nouveaux messages notifient l’équipe destinataire ; propositions et transitions de partenariat notifient les responsables partenaires. Worker toutes les minutes, cinq tentatives maximum, email sans contenu des échanges. Boîte Notifications avec marquage lu protégé par CSRF, badge dans l’en-tête ; discussions classées par dernière activité, compteur de messages reçus non lus et aperçu du dernier message. Ouverture de discussion : seuls les messages affichés sont marqués lus. L’interface actualise les compteurs à la navigation, sans réception temps réel. Les responsables prestataires éditent leur offre dans Mon établissement ; affichage sur fiche et recherche sur tous les champs.
+
+Vérifications : typage, compilation, 12 tests unitaires réussis ; PostgreSQL 18 isolé, suite 10/10 avec migrations 005/006, offre modifiable uniquement par le prestataire responsable, recherche multi-mots sur les offres, notifications isolées par établissement, lecture et compteur, email déposé localement. SMTP réel et recette navigateur restent à faire. Migrations à appliquer avant déploiement.
