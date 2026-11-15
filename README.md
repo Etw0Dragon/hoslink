@@ -38,7 +38,11 @@ La dernière commande exige un compte dont l’email est vérifié et révoque s
 - `src/partnerships.ts` : acceptations bilatérales, versions, priorités et expiration. Les établissements sont verrouillés dans un ordre stable avant toute activation. La réconciliation périodique utilise un verrou PostgreSQL pour coordonner les instances.
 - `src/views/` et `src/queries.ts` : rendu Hono et projections des requêtes d’origine. Le HTML, CSS, médias et routes existants sont conservés. Le JavaScript d’authentification est compilé localement dans `web/static/auth.js`.
 
-Les PDF restent en PostgreSQL, limités à 5 Mo avec contrôle élémentaire `%PDF-`/`%%EOF`. Chaque téléchargement vérifie l’appartenance à la conversation. Seuls `web/static/` et le logo public sont servis comme ressources. Les contrôles de contenu ne remplacent pas un antivirus pour une ouverture à un public non maîtrisé.
+Les PDF restent en PostgreSQL, limités à 5 Mo, contrôlés par ClamAV avant insertion et accessibles uniquement aux établissements de la conversation. Si le scanner est inaccessible ou ne fournit pas de verdict propre, l’envoi est refusé. Le service ClamAV Compose n’expose pas son port ; en développement hors Compose, renseigner `CLAMAV_HOST` et `CLAMAV_PORT` pour un daemon local. Seuls `web/static/` et le logo public sont servis comme ressources.
+
+Les filtres de distance, les préférences de partenariat structurées et les recommandations personnalisées restent en attente de données suffisantes sur les établissements et les partenariats.
+
+L’annuaire propose des filtres combinables par activité, destination/station, commune et adresse, ainsi qu’une carte interactive filtrable par zone visible. Les responsables peuvent rechercher une adresse sur OpenStreetMap, choisir le bon résultat et enregistrer sa position ; les anciennes fiches non localisées restent dans la liste et apparaissent sur la carte après mise à jour. La recherche d’adresse est ponctuelle, déclenchée par un clic, mise en cache et limitée à une requête par seconde pour l’application. L’attribution cartographique est affichée et les URLs du géocodeur et des tuiles sont configurables.
 
 Les mutations métier exigent une origine exacte et un jeton CSRF ; Better Auth applique sa propre protection sur ses routes. Les rôles et appartenances ne sont jamais acceptés depuis les formulaires d’inscription. Les invitations métier nécessitent la session d’un compte vérifié avec l’email destinataire. Les filtres de recherche sont conservés 30 minutes après une connexion, sans redirection vers une URL arbitraire.
 

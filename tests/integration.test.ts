@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { createHmac, randomUUID } from "node:crypto";
+import { createServer } from "node:http";
 import { database } from "../src/db/index.js";
 import { migrate } from "../src/db/migrate.js";
 import { createAuth } from "../src/auth.js";
@@ -358,7 +359,73 @@ test(
             "UPDATE profiles SET current_establishment_id=$1,admin=false WHERE id=$2",
             [eid, uid],
           );
+          await pool.query(
+            "UPDATE establishments SET category='spa',address='10 rue du Test',latitude=45.75,longitude=4.85 WHERE id=$1",
+            [other],
+          );
           await browser.request("/compte");
+          const mappedDirectory = await browser.request(
+            "/annuaire?category_filter=1&categories=spa&city=Paris&address=Test&bbox=4.8%2C45.7%2C4.9%2C45.8",
+          );
+          assert.equal(mappedDirectory.status, 200);
+          const mappedHtml = await mappedDirectory.text();
+          assert.match(mappedHtml, /Établissement B/);
+          assert.match(mappedHtml, /45\.75/);
+          assert.match(mappedHtml, /10 rue du Test/);
+          const outsideBounds = await browser.request(
+            "/annuaire?category_filter=1&categories=spa&bbox=0%2C0%2C1%2C1",
+          );
+          assert.doesNotMatch(
+            await outsideBounds.text(),
+            /Établissement B/,
+            "Le cadre cartographique doit limiter les résultats aux coordonnées visibles.",
+          );
+          const geocoderServer = createServer((request, response) => {
+            const query = new URL(request.url || "/", "http://localhost").searchParams;
+            response.writeHead(200, { "Content-Type": "application/json" });
+            response.end(JSON.stringify([{
+              display_name: `${query.get("q")}, bâtiment validé`,
+              lat: "48.8566",
+              lon: "2.3522",
+              address: { city: "Paris" },
+            }]));
+          });
+          await new Promise<void>((resolve) => geocoderServer.listen(0, "127.0.0.1", resolve));
+          try {
+            const address = geocoderServer.address();
+            assert(address && typeof address !== "string");
+            const geocoderApp = createApp(pool, auth, {
+              ...cfg,
+              GEOCODER_URL: `http://127.0.0.1:${address.port}/search`,
+            });
+            const geocoderBrowser = new Browser(geocoderApp);
+            geocoderBrowser.jar = new Map(browser.jar);
+            geocoderBrowser.csrf = browser.csrf;
+            const geocodeResponse = await geocoderBrowser.request(
+              "/api/maps/geocode",
+              { address: "12 rue de la Recette", city: "Paris" },
+            );
+            const geocodeText = await geocodeResponse.text();
+            assert.equal(geocodeResponse.status, 200, geocodeText);
+            const { places } = JSON.parse(geocodeText) as { places: Array<{ address: string; city: string; latitude: number; longitude: number; token: string }> };
+            assert.equal(places[0].latitude, 48.8566);
+            assert.equal(
+              (await geocoderBrowser.request("/fiche/adresse", {
+                address: places[0].address,
+                city: places[0].city,
+                geocode_token: places[0].token,
+              })).status,
+              303,
+            );
+            const savedLocation = (await pool.query(
+              "SELECT latitude,longitude FROM establishments WHERE id=$1",
+              [eid],
+            )).rows[0];
+            assert.equal(Number(savedLocation.latitude), 48.8566);
+            assert.equal(Number(savedLocation.longitude), 2.3522);
+          } finally {
+            await new Promise<void>((resolve, reject) => geocoderServer.close((error) => error ? reject(error) : resolve()));
+          }
           assert.equal(
             (await browser.request("/apres-connexion")).headers.get("location"),
             "/annuaire?q=spa&station=Paris&category=spa",
@@ -421,6 +488,50 @@ test(
             403,
           );
           await browser.request("/changer", { establishment: eid });
+          const scanConversation = (
+            await pool.query(
+              "INSERT INTO conversations(a,b,subject) VALUES($1,$2,'Contrôle antivirus') RETURNING id",
+              [Math.min(eid, other), Math.max(eid, other)],
+            )
+          ).rows[0].id;
+          const unavailableScannerApp = createApp(pool, auth, {
+            ...cfg,
+            CLAMAV_HOST: "127.0.0.1",
+            CLAMAV_PORT: 39999,
+          });
+          const multipart = new FormData();
+          multipart.set("csrf", browser.csrf);
+          multipart.set("body", "");
+          multipart.set(
+            "document",
+            new File(
+              [new TextEncoder().encode("%PDF-1.4\\n1 0 obj <<>> endobj\\n%%EOF")],
+              "devis.pdf",
+              { type: "application/pdf" },
+            ),
+          );
+          const cookie = [...browser.jar]
+            .map(([key, value]) => `${key}=${value}`)
+            .join("; ");
+          const blockedUpload = await unavailableScannerApp.request(
+            `${cfg.BASE_URL}/messages/${scanConversation}`,
+            {
+              method: "POST",
+              headers: { Cookie: cookie, Origin: cfg.BASE_URL },
+              body: multipart,
+            },
+          );
+          assert.equal(blockedUpload.status, 503);
+          assert.equal(
+            (
+              await pool.query(
+                "SELECT count(*) FROM attachments d JOIN messages m ON m.id=d.message_id WHERE m.conversation_id=$1",
+                [scanConversation],
+              )
+            ).rows[0].count,
+            "0",
+            "Un PDF ne doit pas être enregistré si ClamAV est indisponible.",
+          );
         },
       );
       await t.test(

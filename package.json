@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "tsx watch --env-file=.env.node src/server.ts",
-    "build": "tsc && esbuild src/browser/auth.ts --bundle --format=esm --outfile=web/static/auth.js",
+    "build": "tsc && esbuild src/browser/auth.ts --bundle --format=esm --outfile=web/static/auth.js && esbuild src/browser/maps.ts --bundle --format=esm --outfile=web/static/maps.js --loader:.png=file --asset-names=images/[name]-[hash]",
     "start": "node --env-file-if-exists=.env.node dist/server.js",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "migrate": "tsx --env-file=.env.node src/db/migrate.ts",
@@ -22,12 +22,14 @@
     "better-auth": "1.7.20",
     "drizzle-orm": "0.45.4",
     "hono": "4.13.18",
+    "leaflet": "^1.9.4",
     "nodemailer": "^10.5.0",
     "pg": "^8.16.3",
     "qrcode": "^1.5.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^24.10.1",
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.15.6",

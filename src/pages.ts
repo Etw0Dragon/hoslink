@@ -3,6 +3,7 @@ import { queries } from "./queries.js";
 import type { AppContext } from "./types.js";
 import { renderPage } from "./views/pages.js";
 import { reject, reconcile } from "./partnerships.js";
+import type { Config } from "./config.js";
 export async function project(
   pool: pg.Pool,
   query: { sql: string; fields: readonly string[] },
@@ -17,7 +18,7 @@ export async function project(
     Object.fromEntries(
       query.fields.map((key, i) => [
         key,
-        [
+        row[i] !== null && [
           "ID",
           "OtherID",
           "Active",
@@ -26,6 +27,8 @@ export async function project(
           "Count",
           "Version",
           "PhotoID",
+          "Latitude",
+          "Longitude",
         ].includes(key)
           ? Number(row[i])
           : row[i],
@@ -64,7 +67,7 @@ export const page = (
       ...data,
     }),
   );
-export function pageHandlers(pool: pg.Pool) {
+export function pageHandlers(pool: pg.Pool, cfg: Config) {
   return async (c: AppContext, name: keyof typeof queries) => {
     const u = c.get("user")!;
     const eid = u.EstID;
@@ -75,7 +78,15 @@ export function pageHandlers(pool: pg.Pool) {
     switch (name) {
       case "account":
         data.Establishments = await project(pool, q[0], [u.ID]);
+        data.MapTileURL = cfg.MAP_TILE_URL;
+        data.MapTileAttribution = cfg.MAP_TILE_ATTRIBUTION;
         if (eid) {
+          const establishment = (
+            await pool.query(
+              "SELECT address,city,latitude,longitude FROM establishments WHERE id=$1",
+              [eid],
+            )
+          ).rows[0];
           const profilePhoto = (
             await pool.query(
               "SELECT id FROM establishment_photos WHERE establishment_id=$1 AND kind='profile'",
@@ -93,19 +104,62 @@ export function pageHandlers(pool: pg.Pool) {
           data.PhotoID = Number(profilePhoto?.id || 0);
           data.Photos = photos;
           data.GalleryRemaining = Math.max(0, 8 - photos.length);
+          data.Address = establishment.address;
+          data.City = establishment.city;
+          data.Latitude = establishment.latitude;
+          data.Longitude = establishment.longitude;
         }
         break;
       case "directory": {
         const Query = (c.req.query("q") || "").slice(0, 160),
-          Category = u.EstCategory === "hotel"
-            ? (["ski", "spa", "activite", "autre"].includes(c.req.query("category") || "") ? c.req.query("category")! : "prestataires")
-            : "hotel",
-          Station = (c.req.query("station") || "").slice(0, 100);
+          allowedCategories = u.EstCategory === "hotel"
+            ? ["ski", "spa", "activite", "autre"]
+            : ["hotel"],
+          requestedCategories = c.req.queries("categories") || [],
+          legacyCategory = c.req.query("category") || "",
+          filterCategories = c.req.query("category_filter") === "1"
+            ? requestedCategories.filter((value) => allowedCategories.includes(value))
+            : legacyCategory === "prestataires"
+              ? allowedCategories
+            : legacyCategory
+              ? allowedCategories.includes(legacyCategory) ? [legacyCategory] : []
+              : allowedCategories,
+          Station = (c.req.query("station") || "").slice(0, 100),
+          City = (c.req.query("city") || "").slice(0, 120),
+          Address = (c.req.query("address") || "").slice(0, 160),
+          rawBounds = c.req.query("bbox") || "",
+          coordinates = rawBounds.split(",").map(Number),
+          Bounds = coordinates.length === 4 && coordinates.every(Number.isFinite) &&
+              coordinates[0] >= -180 && coordinates[0] <= 180 &&
+              coordinates[2] >= -180 && coordinates[2] <= 180 &&
+              coordinates[1] >= -90 && coordinates[1] <= 90 &&
+              coordinates[3] >= -90 && coordinates[3] <= 90 &&
+              coordinates[1] <= coordinates[3]
+            ? coordinates
+            : null;
         data = {
           Query,
-          Category,
+          Categories: filterCategories,
+          AllowedCategories: allowedCategories,
           Station,
-          Items: await project(pool, q[0], [eid, Query, Category, Station]),
+          City,
+          Address,
+          Bounds,
+          MapTileURL: cfg.MAP_TILE_URL,
+          MapTileAttribution: cfg.MAP_TILE_ATTRIBUTION,
+          Items: await project(pool, q[0], [
+            eid,
+            Query,
+            filterCategories,
+            Station,
+            City,
+            Address,
+            Bounds ? Bounds[0] : null,
+            Bounds ? Bounds[1] : null,
+            Bounds ? Bounds[3] : null,
+            Bounds ? Bounds[0] : null,
+            Bounds ? Bounds[2] : null,
+          ]),
         };
         break;
       }
@@ -114,6 +168,8 @@ export function pageHandlers(pool: pg.Pool) {
         if (!rows.length) reject(404, "Établissement introuvable.");
         data = {
           Title: rows[0].Name,
+          MapTileURL: cfg.MAP_TILE_URL,
+          MapTileAttribution: cfg.MAP_TILE_ATTRIBUTION,
           Item: Object.fromEntries(
             Object.entries(rows[0]).map(([k, v]) => [k, v]),
           ),

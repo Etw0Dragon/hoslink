@@ -9,6 +9,7 @@ import {
   bigint,
   primaryKey,
   customType,
+  doublePrecision,
 } from "drizzle-orm/pg-core";
 export const user = pgTable("auth_user", {
   id: text("id").primaryKey(),
@@ -106,6 +107,8 @@ export const establishments = pgTable("establishments", {
   station: text("station").notNull(),
   city: text("city").notNull(),
   address: text("address").notNull(),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
   description: text("description").notNull().default(""),
   status: text("status").notNull().default("pending"),
   purchasedSlots: integer("purchased_slots").notNull().default(0),

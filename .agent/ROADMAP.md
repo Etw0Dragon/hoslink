@@ -21,7 +21,7 @@ L’environnement courant ne donne pas accès au socket Docker et ne dispose pas
 ## Étapes suivantes
 
 1. Démarrer PostgreSQL dans un environnement autorisé, exécuter les tests d’intégration et la recette de deux comptes décrite dans README.md.
-2. Faire la recette visuelle ordinateur/mobile, tester SMTP et raccorder un contrôle antivirus des PDF avant ouverture à un public non maîtrisé.
+2. Faire la recette visuelle ordinateur/mobile, tester SMTP et vérifier ClamAV (signatures chargées, détection EICAR, échec fermé) avant ouverture à un public non maîtrisé.
 3. Choisir tarifs, TVA, règles d’impayés/remboursements et prestataire de paiement ; implémenter son checkout et ses notifications authentifiées avec tests de doublons, ordre, échecs et résiliation.
 4. Finaliser exploitant, station, mentions légales, CGU, confidentialité et durées de conservation ; mettre en place les procédures RGPD et de rattachement exceptionnel.
 5. Configurer HTTPS, surveillance, sauvegardes chiffrées hors serveur et effectuer une restauration réelle.
@@ -168,3 +168,40 @@ Vérifications locales : typecheck, build et tests unitaires réussis (incluant 
 ## Photos de profil et galerie des établissements
 
 Sur la branche TypeScript/Hono, chaque responsable peut remplacer la photo de profil de son établissement ; les hôtels peuvent aussi ajouter jusqu’à huit photos de galerie et les supprimer. Les images JPEG/PNG sont limitées à 4 Mo, validées par signature et dimensions, et conservées en PostgreSQL. Elles sont délivrées sans URL publique permanente : les membres validés du réseau voient les images des fiches approuvées, et un membre peut accéder aux images de son propre établissement. Les formulaires sont dans « Mon établissement » ; les photos s’affichent sur les cartes, les fiches et la galerie d’hôtel. Migration `003_establishment_photos.sql` ajoutée. Typecheck, tests et recette de cette évolution restent à exécuter.
+
+## Antivirus PDF et découverte personnalisée
+
+Les PDF sont envoyés au daemon ClamAV par `INSTREAM` avant toute insertion ; un fichier infecté est refusé et une panne ou une réponse ambiguë du scanner bloque l’envoi. Compose ajoute l’image officielle ClamAV 1.4, une base de signatures persistante et un port TCP non publié. La détection EICAR, l’état des signatures et l’échec fermé restent à vérifier avant ouverture publique.
+
+Les filtres de distance, les préférences de partenariat structurées et les recommandations personnalisées restent en attente de données suffisantes sur les établissements et les partenariats. Ils ne sont pas implémentés à ce stade.
+
+Vérifications locales isolées du 15 novembre 2026 : typecheck, build npm et build Docker réussis ; tests unitaires 10 réussis et 1 intégration ignorée sans URL, puis suite PostgreSQL d’intégration 10 réussis sans échec. L’image applicative démarre, `/healthz` répond 200 et joint le daemon sur le réseau privé. ClamAV 1.4.6 a répondu avec les signatures à jour ; PDF propre accepté, PDF EICAR détecté, scanner indisponible renvoyant 503 sans stocker la pièce jointe. La préproduction distante, SMTP réel et recette visuelle restent à faire.
+
+## Annuaire cartographique et adresses OSM
+
+Les catégories de prestataires sont sélectionnables ensemble ; les filtres combinent activité, station/destination, commune, adresse et zone visible sur la carte. Les résultats restent limités aux catégories compatibles avec le type d’établissement connecté. Les fiches affichent leurs adresses exactes et les résultats localisés sur une carte Leaflet/OpenStreetMap. La carte utilise uniquement les tuiles visibles, attribution incluse.
+
+La migration `004_establishment_coordinates.sql` ajoute les coordonnées facultatives et un index. À la création ou dans « Mon établissement », le responsable peut demander une recherche ponctuelle Nominatim, choisir une adresse et sa position, puis les enregistrer. Un jeton signé et à durée limitée lie le choix aux coordonnées ; une fiche existante sans position reste visible dans la liste jusqu’à sa vérification par son responsable. Les recherches de géocodage sont lancées par action utilisateur, limitées à une requête/seconde et mises en cache dans le processus. Les URL du géocodeur, des tuiles et l’attribution sont configurables. Aucun géocodage de masse n’est effectué.
+
+Les filtres de rayon, préférences structurées et recommandations restent en attente des données de partenariat. Vérifications locales de cette évolution : typecheck et build npm réussis ; tests unitaires 11 réussis, un scénario PostgreSQL ignoré sans `TEST_DATABASE_URL` ; suite PostgreSQL exécutée séparément, 10 réussis ; build de l’image Docker réussi avec les fichiers Leaflet servis. Les tests couvrent le cache/jeton de géocodage, la migration, les filtres multi-catégories et par zone, la recherche mockée et l’enregistrement de coordonnées. Aucun appel en masse ou périodique à Nominatim n’a été effectué. La recette visuelle navigateur et la préproduction distante restent à faire.
+
+## Priorités restantes
+
+### Avant fusion de la branche photo
+
+- Exécuter `npm run typecheck`, `npm test` et les tests PostgreSQL avec la migration `003` appliquée.
+- Couvrir les autorisations par établissement, les limites de photos, le verdict antivirus propre/infecté/indisponible et l’isolation des PDF.
+- Faire une recette visuelle responsive du formulaire, des cartes, de la fiche et de la galerie.
+
+### Travail produit encore à implémenter
+
+- La facturation reste désactivée. Après décision sur les prix HT, TVA, remboursements, impayés et prestataire, implémenter le checkout et les notifications authentifiées, idempotentes et testées.
+- Collecter les coordonnées et données de partenariat nécessaires avant de concevoir les filtres de distance, les préférences structurées et les recommandations personnalisées.
+
+### Prérequis avant le pilote
+
+- Finaliser l’identité de l’exploitant, le périmètre et le calendrier du pilote, le budget, les durées de conservation, les mentions légales, les CGU, la confidentialité et les procédures RGPD.
+- Configurer HTTPS, la surveillance et les sauvegardes chiffrées, puis réussir un test réel de restauration. Déployer sur Coolify après résolution des accès et prérequis d’exploitation.
+- Vérifier le scanner antivirus et l’envoi SMTP, puis faire une recette complète avec au moins un hôtel et un prestataire avant l’ouverture du pilote.
+
+Les décisions commerciales et d’exploitation encore ouvertes sont détaillées dans `.agent/PLAN.md`. Aucun paiement, service payant ou lancement de production n’est activé par cette feuille de route.

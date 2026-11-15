@@ -25,6 +25,14 @@ const status = (v: string) =>
   )[v] ?? v;
 const initial = (v: string) => [...(v || "?")][0];
 const views: Record<string, (d: any, p: ViewData) => any> = {};
+const geocodeWidget = (d: ViewData) => html`
+  <div class="osm-geocode" data-osm-geocode>
+    <button type="button" class="secondary" data-geocode-search>Vérifier l’adresse sur la carte</button>
+    <p class="muted" role="status" aria-live="polite" data-geocode-status>La recherche est lancée uniquement à votre demande et transmise à OpenStreetMap.</p>
+    <div class="osm-geocode-results" data-geocode-results></div>
+    <div class="osm-mini-map" data-osm-preview data-map-tile-url="${d.MapTileURL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png"}" data-map-attribution="${d.MapTileAttribution || "© OpenStreetMap contributors"}" data-lat="${d.Latitude ?? ""}" data-lon="${d.Longitude ?? ""}" aria-label="Aperçu de la position sélectionnée"></div>
+    <input type="hidden" name="geocode_token" data-geocode-token value="" />
+  </div>`;
 views["account"] = (d, p) =>
   html`<div class="page-heading">
       <div>
@@ -71,6 +79,19 @@ views["account"] = (d, p) =>
                   ${truth(d.Photos) ? html`<div class="managed-gallery">${d.Photos.map((photo: ViewData) => html`<div><img src="/photos/${photo.ID}" alt="Photo de l’hôtel" /><form action="/fiche/photos/${photo.ID}/supprimer" method="post" data-confirm="Supprimer cette photo de l’hôtel ?">${views["csrf"](d, p)}<button class="secondary">Supprimer</button></form></div>`)}</div>` : html``}
                 </section>`
               : html``}
+            ${truth(d.User.EstID && d.User.Role === "owner")
+              ? html`<section id="adresse" class="card address-manager">
+                  <h2>Adresse et localisation</h2>
+                  <p>Choisissez le résultat correspondant à votre établissement pour afficher son adresse exacte et le placer sur la carte. Les adresses sont recherchées sur OpenStreetMap.</p>
+                  <form action="/fiche/adresse" method="post" class="osm-geocode-form">
+                    ${views["csrf"](d, p)}
+                    <label>Adresse professionnelle<input name="address" data-address-field required maxlength="500" value="${d.Address || ""}" /></label>
+                    <label>Commune<input name="city" data-city-field required maxlength="120" value="${d.City || ""}" /></label>
+                    ${geocodeWidget(d)}
+                    <button>Enregistrer l’adresse</button>
+                  </form>
+                </section>`
+              : html``}
             ${
               truth(d.Establishments)
                 ? html`<section class="card">
@@ -95,7 +116,7 @@ views["account"] = (d, p) =>
                 à son responsable. Le SIRET seul ne permet pas de la
                 revendiquer. Les 9 premiers chiffres identifient l’entreprise : deux SIRET différents peuvent donc appartenir à la même entreprise.
               </p>
-              <form action="/etablissement" method="post">
+              <form action="/etablissement" method="post" class="osm-geocode-form">
                 ${views["csrf"](d, p)}
                 <div class="two-col">
                   <label
@@ -124,14 +145,16 @@ views["account"] = (d, p) =>
                       required
                       maxlength="100" /></label
                   ><label
-                    >Commune<input name="city" required maxlength="100"
+                    >Commune<input name="city" data-city-field required maxlength="120"
                   /></label>
                 </div>
                 <label
                   >Adresse professionnelle<input
                     name="address"
+                    data-address-field
                     required
-                    maxlength="250" /></label
+                    maxlength="500" /></label
+                ${geocodeWidget(d)}
                 ><label
                   >Présentation<textarea
                     name="description"
@@ -485,14 +508,79 @@ views["dashboard"] = (d, p) => html`
     </div>
   </section>
 `;
-views["directory"] = (d, p) => html`
-  <section class="discovery-hero"><h1>Trouvez le bon partenaire<br />ou le bon hôtel.</h1><p>Développez votre réseau et créez de nouvelles collaborations.</p>
-  <form action="/annuaire" role="search" class="discovery-search">
-    <div class="discovery-tabs"><span>${d.User.EstCategory === "hotel" ? "Rechercher des prestataires" : "Rechercher des hôtels"}</span></div>
-    <div class="discovery-search-fields"><label>Mots-clés<input name="q" value="${d.Query || ''}" placeholder="Un nom, un service…" /></label><label>Localisation<input name="station" value="${d.Station || ''}" placeholder="Ville ou destination" /></label><button name="category" value="${d.Category || ''}">Rechercher</button></div>
-  </form><nav class="discovery-quick" aria-label="Catégories rapides">${(d.User.EstCategory === 'hotel' ? [['ski','Location de skis'],['spa','Bien-être & spa'],['activite','Activités'],['autre','Autres services']] : []).map(([value,label])=>html`<a href="/annuaire?category=${value}">${label}</a>`)}</nav></section>
-  <div class="discovery-content"><aside class="discovery-filters"><div class="split"><h2>Filtres</h2><a href="/annuaire">Réinitialiser</a></div><form action="/annuaire"><input type="hidden" name="q" value="${d.Query || ''}"/><label>Type d’entreprise et activité<select name="category" required><option value="">Toutes les activités</option>${(d.User.EstCategory === 'hotel' ? [['prestataires','Tous les prestataires'],['ski','Location de skis'],['spa','Spa & bien-être'],['activite','Activités'],['autre','Autres services']] : [['hotel','Hôtels']]).map(([value,label])=>html`<option value="${value}" ${truth(d.Category===value)?html`selected`:html``}>${label}</option>`)}</select></label><label>Localisation<input name="station" value="${d.Station || ''}" placeholder="Ville ou destination"/></label><button>Appliquer les filtres</button></form></aside>
-  <section class="discovery-results"><div class="results-heading"><h2>${d.Items?.length ?? 0} résultat${truth((d.Items?.length ?? 0)!==1)?html`s`:html``}</h2>${truth((d.Items?.length ?? 0)===100)?html`<span>100 premiers affichés</span>`:html``}</div><div class="discovery-list">${d.Items?.length?d.Items.map((row: ViewData)=>html`<article class="discovery-row"><div class="discovery-image"><img src="${views['activity-image'](row.Category,p)}" alt="" loading="lazy"/><span>Illustration d’activité</span></div><div class="discovery-row-body"><h3><a href="/etablissements/${row.ID}">${row.Name}</a></h3><span class="discovery-category">${category(row.Category)}</span><p class="discovery-location">${row.Station}${truth(row.Station && row.City)?html` · `:html``}${row.City}</p><p>${row.Description || 'Présentation à compléter.'}</p><a class="button secondary" href="/etablissements/${row.ID}">Voir la fiche et contacter</a></div></article>`):html`<div class="empty"><h2>Aucun résultat pour cette recherche.</h2><p>Modifiez les filtres pour découvrir d’autres professionnels.</p><a href="/annuaire" class="button secondary">Réinitialiser les filtres</a></div>`}</div></section></div>`;
+views["directory"] = (d, p) => {
+  const mapItems = (d.Items || [])
+    .filter((row: ViewData) => row.Latitude != null && row.Longitude != null)
+    .map((row: ViewData) => ({
+      id: row.ID,
+      name: row.Name,
+      category: category(row.Category),
+      city: row.City,
+      address: row.Address,
+      latitude: row.Latitude,
+      longitude: row.Longitude,
+      url: `/etablissements/${row.ID}`,
+    }));
+  const unlocated = (d.Items || []).length - mapItems.length;
+  return html`
+    <section class="discovery-hero">
+      <h1>Trouvez le bon partenaire<br />ou le bon hôtel.</h1>
+      <p>Développez votre réseau et créez de nouvelles collaborations.</p>
+      <form action="/annuaire" role="search" class="discovery-search">
+        <div class="discovery-tabs"><span>${d.User.EstCategory === "hotel" ? "Rechercher des prestataires" : "Rechercher des hôtels"}</span></div>
+        <div class="discovery-search-fields">
+          <label>Mots-clés<input name="q" value="${d.Query || ""}" placeholder="Un nom, un service…" /></label>
+          <label>Destination<input name="station" value="${d.Station || ""}" placeholder="Station, ville ou région" /></label>
+          <button>Rechercher</button>
+        </div>
+      </form>
+    </section>
+    <div class="discovery-content">
+      <aside class="discovery-filters">
+        <div class="split"><h2>Filtres</h2><a href="/annuaire">Réinitialiser</a></div>
+        <form action="/annuaire" data-directory-filters>
+          <input type="hidden" name="q" value="${d.Query || ""}" />
+          <input type="hidden" name="category_filter" value="1" />
+          <input type="hidden" name="bbox" value="${d.Bounds ? d.Bounds.join(",") : ""}" data-map-bounds />
+          <fieldset class="directory-categories">
+            <legend>${d.User.EstCategory === "hotel" ? "Types de prestataires" : "Établissements recherchés"}</legend>
+            ${(d.AllowedCategories || []).map((value: string) => html`
+              <label class="check"><input type="checkbox" name="categories" value="${value}" ${truth(d.Categories?.includes(value)) ? html`checked` : html``} />${category(value)}</label>
+            `)}
+          </fieldset>
+          <label>Station ou destination<input name="station" value="${d.Station || ""}" placeholder="Station, secteur…" /></label>
+          <label>Commune<input name="city" value="${d.City || ""}" placeholder="Ville ou commune" /></label>
+          <label>Adresse ou code postal<input name="address" value="${d.Address || ""}" placeholder="Rue, numéro, code postal…" /></label>
+          <button>Appliquer les filtres</button>
+        </form>
+      </aside>
+      <section class="discovery-results">
+        <div class="results-heading"><h2>${d.Items?.length ?? 0} résultat${truth((d.Items?.length ?? 0) !== 1) ? html`s` : html``}</h2><span>Jusqu’à 200 fiches</span></div>
+        <section class="directory-map-panel card">
+          <div class="split"><div><h2>Explorer sur la carte</h2><p data-map-status>${mapItems.length} adresse${mapItems.length === 1 ? "" : "s"} localisée${mapItems.length === 1 ? "" : "s"} sur ${d.Items?.length ?? 0} résultat${d.Items?.length === 1 ? "" : "s"}.</p></div><button type="button" class="secondary" data-map-search-area>Rechercher dans cette zone</button></div>
+          <div class="map-address-search" data-osm-map-search>
+            ${views["csrf"](d, p)}
+            <label>Aller à une adresse ou une commune<input data-map-location-address maxlength="250" placeholder="Adresse, hôtel ou commune…" /></label>
+            <label>Commune<input data-map-location-city maxlength="120" placeholder="France" /></label>
+            <button type="button" class="secondary" data-map-location-search>Localiser sur la carte</button>
+            <p class="muted" role="status" aria-live="polite" data-map-location-status>Recherche ponctuelle via OpenStreetMap, à votre demande.</p>
+            <div class="osm-geocode-results" data-map-location-results></div>
+          </div>
+          <div class="directory-map" data-directory-map data-map-tile-url="${d.MapTileURL}" data-map-attribution="${d.MapTileAttribution}" data-map-markers="${JSON.stringify(mapItems)}" data-map-bounds="${JSON.stringify(d.Bounds || [])}" aria-label="Carte des établissements trouvés"></div>
+          ${unlocated ? html`<p class="muted">${unlocated} fiche${unlocated === 1 ? "" : "s"} n’a/ont pas encore de position vérifiée et reste${unlocated === 1 ? "" : "nt"} visible${unlocated === 1 ? "" : "s"} dans la liste.</p>` : html``}
+          <small>${d.MapTileAttribution} · Données de géocodage © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer">Signaler un problème de carte</a></small>
+        </section>
+        <div class="discovery-list">
+          ${d.Items?.length ? d.Items.map((row: ViewData) => html`
+            <article class="discovery-row" data-directory-result data-latitude="${row.Latitude ?? ""}" data-longitude="${row.Longitude ?? ""}">
+              <div class="discovery-image"><img src="${truth(row.PhotoID) ? `/photos/${row.PhotoID}` : views["activity-image"](row.Category, p)}" alt="${truth(row.PhotoID) ? `Photo de ${row.Name}` : ""}" loading="lazy" />${truth(row.PhotoID) ? html`` : html`<span>Illustration d’activité</span>`}</div>
+              <div class="discovery-row-body"><h3><a href="/etablissements/${row.ID}">${row.Name}</a></h3><span class="discovery-category">${category(row.Category)}</span><p class="discovery-location">${row.Station}${truth(row.Station && row.City) ? html` · ` : html``}${row.City}</p><p class="discovery-exact-address">${row.Address}</p><p>${row.Description || "Présentation à compléter."}</p><a class="button secondary" href="/etablissements/${row.ID}">Voir la fiche et contacter</a></div>
+            </article>
+          `) : html`<div class="empty"><h2>Aucun résultat pour cette recherche.</h2><p>Modifiez les filtres pour découvrir d’autres professionnels.</p><a href="/annuaire" class="button secondary">Réinitialiser les filtres</a></div>`}
+        </div>
+      </section>
+    </div>`;
+};
 views["history"] = (d, p) =>
   html`<a class="back" href="/partenariats">← Mes partenariats</a>
     <h1>Historique des conditions.</h1>
@@ -959,6 +1047,7 @@ views["layout"] = (d, p) =>
         <script src="/static/app.js?v=hoslink-logo-4" defer></script>
         <script type="module" src="/static/auth.js"></script>
         <link rel="stylesheet" href="/static/app.css?v=hoslink-logo-4" />
+        ${truth(["account", "directory", "profile"].includes(d.Page)) ? html`<link rel="stylesheet" href="/static/maps.css" /><script type="module" src="/static/maps.js"></script>` : html``}
         ${truth(d.Page === "home") ? html`<link rel="stylesheet" href="/static/landing.css?v=hoslink-logo-4" />` : html``}
       </head>
       <body
@@ -1336,9 +1425,11 @@ views["profile"] = (d, p) =>
           ${category(d.Item.Category)} ·
           ${d.Item.Station}${truth(d.Item.City) ? html` · ${d.Item.City}` : html``}
         </p>
+        <p class="profile-exact-address">${d.Item.Address}${truth(d.Item.City) ? html` · ${d.Item.City}` : html``}</p>
         ${truth(d.User.EstID !== d.Item.ID) ? html`<div class="actions">${truth(d.User.Role === "owner") ? html`<a class="button" href="#proposition">Proposer un partenariat ${views["arrow"](d, p)}</a>` : html``}<a class="button secondary" href="#contact">Contacter l’équipe</a></div>` : html``}
       </div>
     </div>
+    ${truth(d.Item.Latitude != null && d.Item.Longitude != null) ? html`<section class="card profile-location"><h2>Localisation</h2><div class="profile-map" data-osm-single-map data-map-tile-url="${d.MapTileURL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png"}" data-map-attribution="${d.MapTileAttribution || "© OpenStreetMap contributors"}" data-lat="${d.Item.Latitude}" data-lon="${d.Item.Longitude}" aria-label="Carte de l’établissement"></div><small>${d.MapTileAttribution || "© OpenStreetMap contributors"}</small></section>` : html``}
     ${truth(d.Photos) ? html`<section class="hotel-gallery" aria-label="Photos de l’hôtel"><h2>Photos de l’hôtel</h2><div>${d.Photos.map((photo: ViewData) => html`<img src="/photos/${photo.ID}" alt="Photo de l’hôtel" loading="lazy" />`)}</div></section>` : html``}
     <div class="two-col">
       <section class="card">
