@@ -38,6 +38,9 @@ jobs:
           node-version: "24"
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
+      - run: node --input-type=module -e "import pg from 'pg'; const c=new pg.Client({connectionString:process.env.TEST_DATABASE_URL}); await c.connect(); await c.query('CREATE DATABASE hoslink_ts_test_documents'); await c.end();"
       - run: npm test
+        env:
+          DOCUMENT_TEST_DATABASE_URL: postgres://hoslink_ci:ci_only_disposable@localhost:5432/hoslink_ts_test_documents
       - run: npm run build
       - run: docker build -t hoslink:test .

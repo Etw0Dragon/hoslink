@@ -10,7 +10,7 @@ export function mailer(c: Config) {
         from: c.MAIL_FROM,
         to,
         subject,
-        text: `${url}\nCe lien est personnel.`,
+        text: `${url}\nCe message est personnel.`,
       });
       return;
     }

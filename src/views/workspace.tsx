@@ -46,7 +46,9 @@ const navigation = [
   ["dashboard", "/tableau-de-bord", "Tableau de bord"],
   ["directory", "/annuaire", "Explorer le réseau"],
   ["partnerships", "/partenariats", "Partenariats"],
-  ["messages", "/messages", "Messages & devis"],
+  ["messages", "/messages", "Messages"],
+  ["offers", "/devis", "Devis"],
+  ["partnerships", "/contrats", "Contrats"],
   ["account", "/compte", "Mon établissement"],
   ["team", "/equipe", "Mon équipe"],
   ["security", "/securite", "Sécurité du compte"],
@@ -119,7 +121,7 @@ export function Workspace({
               {navigation.map(([key, href, label]) => (
                 <a
                   href={href}
-                  aria-current={active === key ? "page" : undefined}
+                  aria-current={active === (href === "/devis" ? "quotes" : href === "/contrats" ? "contracts" : key) ? "page" : undefined}
                 >
                   <Icon name={key} />
                   <span>{label}</span>

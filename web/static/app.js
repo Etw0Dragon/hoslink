@@ -67,3 +67,39 @@ document.querySelectorAll('[data-photo-picker]').forEach((input) => {
     }
   });
 });
+
+document.querySelectorAll('[data-pdf-composer]').forEach((form) => {
+  const input = form.querySelector('[data-pdf-picker]');
+  const preview = form.querySelector('[data-pdf-preview]');
+  const frame = form.querySelector('[data-pdf-frame]');
+  const name = form.querySelector('[data-pdf-name]');
+  const size = form.querySelector('[data-pdf-size]');
+  let objectUrl;
+  const clear = () => {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = undefined;
+    input.value = '';
+    input.setCustomValidity('');
+    preview.hidden = true;
+  };
+  input.addEventListener('change', async () => {
+    const file = input.files?.[0];
+    input.setCustomValidity('');
+    if (!file) return;
+    const signature = new TextDecoder().decode(await file.slice(0, 5).arrayBuffer());
+    if (file.size > 5 * 1024 * 1024 || (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) || signature !== '%PDF-') {
+      input.setCustomValidity('Choisissez un fichier PDF valide de 5 Mo maximum.');
+      input.reportValidity();
+      clear();
+      return;
+    }
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(file);
+    frame.src = objectUrl;
+    name.textContent = file.name;
+    size.textContent = `${(file.size / 1024 / 1024).toFixed(2)} Mo`;
+    preview.hidden = false;
+  });
+  form.querySelector('[data-pdf-remove]').addEventListener('click', clear);
+  form.addEventListener('submit', () => { if (objectUrl) URL.revokeObjectURL(objectUrl); });
+});

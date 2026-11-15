@@ -10,8 +10,8 @@ export const queries = {
       fields: ["ID", "Subject", "Quote", "Name"],
     },
     {
-      sql: "SELECT m.id,e.name,m.body,to_char(m.created_at,'DD/MM/YYYY HH24:MI'),COALESCE(d.id,0),COALESCE(d.name,''),m.establishment_id FROM messages m JOIN establishments e ON e.id=m.establishment_id LEFT JOIN attachments d ON d.message_id=m.id WHERE m.conversation_id=$1 ORDER BY m.id LIMIT 500",
-      fields: ["ID", "Name", "Body", "Date", "OtherID", "FileName", "EstablishmentID"],
+      sql: "SELECT m.id,e.name,m.body,to_char(m.created_at,'DD/MM/YYYY HH24:MI'),COALESCE(d.id,0),COALESCE(d.name,''),m.establishment_id,bd.id,dv.content->>'title',dv.version,CASE dr.status WHEN 'sent' THEN 'Envoyé' WHEN 'accepted' THEN 'Accepté' WHEN 'refused' THEN 'Refusé' WHEN 'signing' THEN 'À signer' WHEN 'signed' THEN 'Signé' WHEN 'superseded' THEN 'Remplacé' END,dv.content->>'reference' FROM messages m JOIN establishments e ON e.id=m.establishment_id LEFT JOIN attachments d ON d.message_id=m.id LEFT JOIN document_versions dv ON dv.id=m.document_version_id LEFT JOIN business_documents bd ON bd.id=dv.document_id LEFT JOIN document_requests dr ON dr.version_id=dv.id WHERE m.conversation_id=$1 ORDER BY m.id LIMIT 500",
+      fields: ["ID", "Name", "Body", "Date", "OtherID", "FileName", "EstablishmentID", "DocumentID", "DocumentTitle", "DocumentVersion", "DocumentStatus", "DocumentReference"],
     },
   ],
   dashboard: [

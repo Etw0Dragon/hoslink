@@ -95,6 +95,8 @@ export async function partnershipAction(
     ).rows[0];
     if (p.version !== version)
       reject(409, "L’accord a changé. Rechargez la page.");
+    if (["accepter","modifier","reactiver"].includes(action) && (await tx.query("SELECT 1 FROM document_requests WHERE partnership_id=$1 AND partnership_version=$2",[id,version])).rowCount)
+      reject(409,"Ce partenariat utilise un contrat : poursuivez sa signature ou créez une nouvelle version depuis Contrats.");
     if (action === "accepter") {
       if (p.status !== "pending")
         reject(409, "Cet accord n’est pas en attente.");

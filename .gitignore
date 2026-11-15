@@ -23,3 +23,5 @@ web/static/auth.js
 web/static/maps.js
 web/static/maps.css
 web/static/images/
+
+/web/static/pdfjs/

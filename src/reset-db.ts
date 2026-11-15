@@ -12,7 +12,7 @@ export async function resetDatabase(env: NodeJS.ProcessEnv,args: string[]) {
  try {
   await transaction(pool,async tx=>{
    // Only tables belonging to this application; schema and migrations remain intact.
-   await tx.query('TRUNCATE notifications,conversation_reads,partnership_reviews,retained_partnerships,partnership_versions,partnerships,attachments,messages,conversations,establishment_photos,memberships,tokens,audit,establishments,companies,profiles,auth_two_factor,auth_session,auth_account,auth_verification,auth_user RESTART IDENTITY');
+   await tx.query('TRUNCATE document_events,document_signatures,document_challenges,document_requests,document_versions,document_templates,business_documents,notifications,conversation_reads,partnership_reviews,retained_partnerships,partnership_versions,partnerships,attachments,messages,conversations,establishment_photos,memberships,tokens,audit,establishments,companies,profiles,auth_two_factor,auth_session,auth_account,auth_verification,auth_user RESTART IDENTITY');
   });
  }finally{await pool.end();}
 }
