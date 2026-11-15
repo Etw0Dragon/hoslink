@@ -155,7 +155,7 @@ views["account"] = (d, p) =>
                     required
                     maxlength="500" /></label
                 ${geocodeWidget(d)}
-                ><label
+                <label
                   >Présentation<textarea
                     name="description"
                     maxlength="3000"

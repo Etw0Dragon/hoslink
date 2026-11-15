@@ -52,13 +52,13 @@ const titles: Record<string, string> = {
   history: "Historique des conditions",
   legal: "Informations",
 };
-export const page = (
+export const page = async (
   c: AppContext,
   Page: string,
   data: Record<string, unknown> = {},
 ) =>
   c.html(
-    renderPage({
+    "<!doctype html>" + await renderPage({
       Page,
       Title: titles[Page] || "Votre espace professionnel",
       User: c.get("user"),

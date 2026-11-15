@@ -1180,15 +1180,21 @@
   padding: 0 5px;
   font-weight: 650;
 }
-.directory-filters .directory-categories label.check {
+.discovery-filters .directory-categories label.check {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 5px 0;
 }
-.directory-filters .directory-categories input[type="checkbox"] {
+.discovery-filters .directory-categories input[type="checkbox"] {
   width: auto;
   margin: 0;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex: 0 0 18px;
+  padding: 0;
+  accent-color: #183d4c;
 }
 .discovery-row[data-directory-result] {
   cursor: pointer;
