@@ -1,6 +1,6 @@
 /* Accueil : composition hôtelière bleu nuit et or, selon la maquette fournie. */
 .landing { --market-ink:#102c3c; --market-soft:#f5ebdf; --market-blue:#96631f; background:#fbf5ee; color:var(--market-ink); }
-.landing .public-header { max-width:1440px; padding:28px 5%; border:0; gap:28px; background:#0c2635; box-shadow:0 0 0 100vmax #0c2635; clip-path:inset(0 -100vmax); }
+.landing .public-header { position:sticky; top:0; z-index:1000; max-width:none; width:100%; margin:0; padding:28px max(5%, calc((100% - 1296px)/2)); border:0; gap:28px; background:#0c2635; }
 .landing .public-header .wordmark { color:#fff7eb; font-family:Georgia,serif; font-size:38px; font-weight:400; }
 .landing .brand-dot { background:#dca553; border-radius:50%; }
 .landing .public-header nav { gap:24px; }
@@ -10,7 +10,8 @@
 .landing .public-header .button,.landing .button { background:linear-gradient(120deg,#edc586,#d69a46); color:#102635; border:0; border-radius:999px; min-height:46px; font-size:13px; }
 .landing .button:hover { background:#f0c98c; color:#102635; }
 .landing .login-link { color:#fff7eb; border:1px solid #b2bfc4; padding:10px 18px; border-radius:999px; white-space:nowrap; font-size:12px; }
-.landing main { max-width:1440px; padding:0 5%; overflow:visible; }
+.landing main { max-width:1440px; padding:0 5%; margin:0 auto; overflow:visible; }
+.landing main > .market-hero { margin-top:0; }
 .landing h1,.landing h2,.landing h3 { color:var(--market-ink); letter-spacing:-.025em; }
 .landing h2 { font-family:Georgia,'Times New Roman',serif; font-weight:400; font-size:clamp(32px,3.5vw,48px); line-height:1.14; }
 .landing p { font-size:16px; line-height:1.75; color:#536171; }

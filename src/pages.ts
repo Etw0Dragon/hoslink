@@ -111,7 +111,7 @@ export function pageHandlers(pool: pg.Pool, cfg: Config) {
         }
         break;
       case "directory": {
-        const Query = (c.req.query("q") || "").slice(0, 160),
+        const Query = (c.req.query("q") || "").trim().slice(0, 160),
           allowedCategories = u.EstCategory === "hotel"
             ? ["ski", "spa", "activite", "autre"]
             : ["hotel"],
@@ -206,6 +206,7 @@ export function pageHandlers(pool: pg.Pool, cfg: Config) {
         if (!rows.length) reject(404, "Conversation introuvable.");
         data.Item = rows[0];
         data.Messages = await project(pool, q[1], [id]);
+        data.Items = await project(pool, queries.conversations[0], [eid]);
         break;
       }
       case "partnerships":
