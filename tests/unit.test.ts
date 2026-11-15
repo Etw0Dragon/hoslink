@@ -130,3 +130,12 @@ test("test-prod exige HTTPS et SMTP comme la production", () => {
   assert.throws(() => readConfig({...env, BASE_URL: "https://hoslink.tmfolio.site"}));
   assert.equal(readConfig({...env, BASE_URL: "https://hoslink.tmfolio.site", SMTP_URL: "smtp://localhost:1025"}).NODE_ENV, "test-prod");
 });
+
+ test("conditions de partenariat : dates et bilan validés", async () => {
+ const {partnershipDetails,reviewInput} = await import("../src/partnership-details.js");
+ assert.equal(partnershipDetails.parse({benefits:" Réduction "}).benefits,"Réduction");
+ assert.throws(()=>partnershipDetails.parse({start:"2026-12-01",end:"2026-11-01"}));
+ assert.throws(()=>partnershipDetails.parse({renewal:"2026-02-30"}));
+ assert.throws(()=>reviewInput.parse({outcome:"other",note:"test"}));
+ assert.throws(()=>reviewInput.parse({outcome:"positive",note:" "}));
+ });

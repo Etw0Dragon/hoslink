@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 export interface Identity {
+  NotificationCount?: number;
   ID: number;
   AuthID: string;
   Name: string;

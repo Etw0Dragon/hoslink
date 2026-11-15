@@ -33,6 +33,9 @@ const geocodeWidget = (d: ViewData) => html`
     <div class="osm-mini-map" data-osm-preview data-map-tile-url="${d.MapTileURL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png"}" data-map-attribution="${d.MapTileAttribution || "© OpenStreetMap contributors"}" data-lat="${d.Latitude ?? ""}" data-lon="${d.Longitude ?? ""}" aria-label="Aperçu de la position sélectionnée"></div>
     <input type="hidden" name="geocode_token" data-geocode-token value="" />
   </div>`;
+const offerLabels = {activities:"Activités et spécialités",area:"Zone d’intervention",seasons:"Saisons et périodes d’activité",languages:"Langues parlées",audience:"Clientèles accueillies",benefits:"Avantages proposés aux partenaires"};
+const offerFields = (offer: ViewData = {}) => html`<div class="two-col">${Object.entries(offerLabels).map(([key,label])=>html`<label>${label}<textarea name="${key}" maxlength="1000" rows="3">${offer[key] || ""}</textarea></label>`)}</div>`;
+views["notifications"] = (d,p) => html`<div class="page-heading"><div><h1>Notifications</h1><p>Vos nouveaux messages et demandes de partenariat.</p></div></div><section class="card">${(d.Notifications || []).length ? d.Notifications.map((n: ViewData)=>html`<article class="notification-item"><div><a href="${n.kind === "message" ? `/messages/${n.entity_id}` : "/partenariats"}"><strong>${n.title}</strong></a><small>${n.date} ${n.read_at ? "· Lue" : "· Non lue"}</small></div>${!n.read_at ? html`<form method="post" action="/notifications/${n.id}/lire">${views["csrf"](d,p)}<button class="secondary">Marquer comme lue</button></form>`:html``}</article>`):html`<p>Aucune notification pour le moment.</p>`}</section>`;
 views["account"] = (d, p) =>
   html`<div class="page-heading">
       <div>
@@ -79,6 +82,7 @@ views["account"] = (d, p) =>
                   ${truth(d.Photos) ? html`<div class="managed-gallery">${d.Photos.map((photo: ViewData) => html`<div><img src="/photos/${photo.ID}" alt="Photo de l’hôtel" /><form action="/fiche/photos/${photo.ID}/supprimer" method="post" data-confirm="Supprimer cette photo de l’hôtel ?">${views["csrf"](d, p)}<button class="secondary">Supprimer</button></form></div>`)}</div>` : html``}
                 </section>`
               : html``}
+            ${truth(d.User.EstID && d.User.Role === "owner" && d.User.EstCategory !== "hotel") ? html`<section id="offre" class="card"><h2>Votre offre professionnelle</h2><p>Ces informations apparaissent sur votre fiche et permettent de vous trouver dans la recherche.</p><form method="post" action="/fiche/offre">${views["csrf"](d,p)}${offerFields(d.ProviderOffer)}<button>Enregistrer mon offre</button></form></section>` : html``}
             ${truth(d.User.EstID && d.User.Role === "owner")
               ? html`<section id="adresse" class="card address-manager">
                   <h2>Adresse et localisation</h2>
@@ -340,7 +344,7 @@ views["auth"] = (d, p) =>
       }
     </div>
   </div>`;
-const chatList = (d: ViewData) => html`<aside class="chat-sidebar"><div class="chat-list-heading"><h2>Discussions</h2><a href="/annuaire" class="button secondary" aria-label="Nouvelle conversation">＋</a></div><nav aria-label="Conversations">${(d.Items || []).map((row: ViewData) => html`<a class="chat-contact ${String(d.Item?.ID) === String(row.ID) ? "selected" : ""}" href="/messages/${row.ID}" ${String(d.Item?.ID) === String(row.ID) ? html`aria-current="page"` : html``}><span class="chat-avatar">${initial(row.Name)}</span><span class="chat-contact-copy"><strong>${row.Name}</strong><small>${row.Subject}</small></span><time>${row.Date || ""}</time></a>`)}</nav>${!d.Items?.length ? html`<p class="chat-list-empty">Aucune discussion pour le moment.</p>` : html``}</aside>`;
+const chatList = (d: ViewData) => html`<aside class="chat-sidebar"><div class="chat-list-heading"><h2>Discussions</h2><a href="/annuaire" class="button secondary" aria-label="Nouvelle conversation">＋</a></div><nav aria-label="Conversations">${(d.Items || []).map((row: ViewData) => html`<a class="chat-contact ${String(d.Item?.ID) === String(row.ID) ? "selected" : ""}" href="/messages/${row.ID}" ${String(d.Item?.ID) === String(row.ID) ? html`aria-current="page"` : html``}><span class="chat-avatar">${initial(row.Name)}</span><span class="chat-contact-copy"><strong>${row.Name}</strong><small>${row.Preview || row.Subject}</small></span>${Number(row.Unread)>0 ? html`<span class="unread-badge">${row.Unread}</span>`:html``}<time>${row.Date || ""}</time></a>`)}</nav>${!d.Items?.length ? html`<p class="chat-list-empty">Aucune discussion pour le moment.</p>` : html``}</aside>`;
 views["conversation"] = (d, p) => html`<div class="chat-layout chat-open">${chatList(d)}<section class="chat-main" aria-label="Conversation avec ${d.Item.Name}"><header class="chat-header"><a class="chat-back" href="/messages" aria-label="Retour aux discussions">←</a><span class="chat-avatar">${initial(d.Item.Name)}</span><div><h1>${d.Item.Name}</h1><p>${d.Item.Subject}</p></div>${d.Item.Quote ? html`<span class="badge">Devis</span>` : html``}</header><div class="chat-messages" role="log" aria-label="Messages">${(d.Messages || []).map((row: ViewData) => html`<article class="chat-bubble ${String(row.EstablishmentID) === String(d.User.EstID) ? "sent" : "received"}"><strong>${row.Name}</strong><p>${row.Body}</p>${row.OtherID ? html`<a class="attachment" href="/documents/${row.OtherID}">↓ ${row.FileName}</a>` : html``}<time>${row.Date}</time></article>`)}<div id="dernier-message"></div></div><form class="chat-composer" action="/messages/${d.Item.ID}#dernier-message" method="post" enctype="multipart/form-data">${views["csrf"](d,p)}<label class="visually-hidden" for="chat-body">Votre message</label><textarea id="chat-body" name="body" maxlength="10000" rows="2" placeholder="Écrivez votre message…"></textarea><div class="chat-composer-actions"><label class="chat-file">Joindre un PDF · 5 Mo<input type="file" name="document" accept="application/pdf,.pdf" /></label><button>Envoyer ↑</button></div></form></section></div>`;
 views["conversations"] = (d, p) => html`<div class="page-heading"><div><h1>Votre messagerie.</h1><p>Un espace pour échanger et construire vos partenariats.</p></div></div><div class="chat-layout">${chatList(d)}<section class="chat-welcome"><span class="chat-welcome-icon">↔</span><h2>Gardez le contact.</h2><p>Sélectionnez une discussion pour retrouver vos messages et devis.</p><a class="button" href="/annuaire">Nouvelle conversation ＋</a><small>Vos échanges sont réservés aux équipes des établissements concernés.</small></section></div>`;
 views["dashboard"] = (d, p) => html`
@@ -520,7 +524,7 @@ views["history"] = (d, p) =>
               html`<article class="card">
                 <h2>Version ${row.Version}</h2>
                 <small>${row.Name} · ${row.Date}</small>
-                <p class="pre">${row.Terms}</p>
+                <p class="pre">${row.Terms}</p>${agreementSummary(row.Details)}
               </article>`,
           )
         : html``
@@ -1235,6 +1239,8 @@ views["offers"] = (d, p) =>
       Le pilote utilise les places gratuites. Les achats ouvriront une fois les
       tarifs et les conditions commerciales finalisés.
     </div>`;
+const agreementFields = (details: ViewData = {}) => html`<div class="two-col"><label>Avantages clients<textarea name="benefits" maxlength="2000" rows="3">${details.benefits || ""}</textarea></label><label>Engagements de chacun<textarea name="commitments" maxlength="2000" rows="3">${details.commitments || ""}</textarea></label><label>Début<input type="date" name="start" value="${details.start || ""}" /></label><label>Fin prévue<input type="date" name="end" value="${details.end || ""}" /></label><label>Renouvellement à examiner<input type="date" name="renewal" value="${details.renewal || ""}" /></label></div>`;
+const agreementSummary = (details: ViewData = {}) => html`<dl class="agreement-details">${details.benefits ? html`<dt>Avantages clients</dt><dd class="pre">${details.benefits}</dd>` : html``}${details.commitments ? html`<dt>Engagements</dt><dd class="pre">${details.commitments}</dd>` : html``}${details.start ? html`<dt>Début</dt><dd>${details.start}</dd>` : html``}${details.end ? html`<dt>Fin prévue</dt><dd>${details.end}</dd>` : html``}${details.renewal ? html`<dt>Renouvellement à examiner</dt><dd>${details.renewal}</dd>` : html``}</dl>`;
 views["partnerships"] = (d, p) =>
   html`<div class="page-heading">
       <div>
@@ -1261,7 +1267,10 @@ views["partnerships"] = (d, p) =>
                     >${truth(row.Status === "active") ? html`Accord actif` : truth(row.Status === "pending") ? html`${truth(row.Accepted) ? html`En attente du partenaire` : html`À examiner`}` : html`${status(row.Status)}`}</span
                   >
                 </div>
-                <p class="pre terms">${row.Terms}</p>
+                <p class="pre terms">${row.Terms}</p>${agreementSummary(row.Details)}
+${row.PendingReminder ? html`<p class="notice">Proposition en attente depuis plus de sept jours : faites le point avec votre partenaire.</p>` : html``}
+${row.ReviewReminder ? html`<p class="notice">Un bilan ou renouvellement est à prévoir dans les sept jours ou sa date est dépassée.</p>` : html``}
+<details><summary>Suivi partagé de la collaboration</summary><p>Les bilans sont visibles par les deux établissements. Ils ne modifient pas les conditions de l’accord.</p>${(row.Reviews || []).map((review: ViewData) => html`<article class="partnership-review"><strong>${review.name}</strong> · ${review.created_at}<p>${review.outcome === "positive" ? "Collaboration satisfaisante" : review.outcome === "adjust" ? "Ajustements souhaités" : "Pause à discuter"}</p><p class="pre">${review.note}</p>${review.next_review ? html`<small>Prochain bilan : ${String(review.next_review).slice(0,10)}</small>` : html``}</article>`)}${d.User.Role === "owner" ? html`<form method="post" action="/partenariats/${row.ID}/bilan">${views["csrf"](p,p)}<label>Bilan<select name="outcome"><option value="positive">Collaboration satisfaisante</option><option value="adjust">Ajustements souhaités</option><option value="pause">Pause à discuter</option></select></label><label>Votre retour<textarea name="note" required maxlength="2000" rows="3"></textarea></label><label>Prochain bilan<input type="date" name="next_review" /></label><button>Partager le bilan</button></form>` : html``}</details>
                 <a class="text-link" href="/partenariats/${row.ID}/historique"
                   >Consulter les versions précédentes ↗</a
                 >${truth(row.Status === "pending") ? html`<p>${truth(row.Accepted) ? html`Vous avez accepté cette version. L’activation nécessite l’accord et la capacité des deux parties.` : html`Lisez les conditions avant d’accepter cette version.`}</p>` : html``}${
@@ -1315,6 +1324,7 @@ views["partnerships"] = (d, p) =>
                               >
 ${row.Terms}</textarea>
                             </label>
+                            ${agreementFields(row.Details)}
                             <p>
                               La nouvelle version devra être acceptée de
                               nouveau. Le partenariat repassera en attente.
@@ -1366,6 +1376,7 @@ views["profile"] = (d, p) =>
       <small>${d.MapTileAttribution || "© OpenStreetMap contributors"}</small>
     </section>
     ${truth(d.Photos) ? html`<section class="hotel-gallery" aria-label="Photos de l’hôtel"><h2>Photos de l’hôtel</h2><div>${d.Photos.map((photo: ViewData) => html`<img src="/photos/${photo.ID}" alt="Photo de l’hôtel" loading="lazy" />`)}</div></section>` : html``}
+    ${d.Item.Category !== "hotel" ? html`<section class="card provider-offer"><h2>Offre professionnelle</h2><dl class="agreement-details">${Object.entries(offerLabels).map(([key,label])=> d.Item.ProviderOffer?.[key] ? html`<dt>${label}</dt><dd class="pre">${d.Item.ProviderOffer[key]}</dd>` : html``)}</dl>${!Object.values(d.Item.ProviderOffer || {}).some(Boolean) ? html`<p>Ce prestataire n’a pas encore détaillé son offre. Contactez son équipe pour en savoir plus.</p>`:html``}</section>`:html``}
     <div class="two-col">
       <section class="card">
         <h2>À propos de l’établissement</h2>
@@ -1453,7 +1464,7 @@ ${d.Item.Description}</textarea></label
                 type="hidden"
                 name="other"
                 value="${d.Item.ID}"
-              /><label
+              />${agreementFields()}<label
                 >Conditions de l’accord<textarea
                   name="terms"
                   required

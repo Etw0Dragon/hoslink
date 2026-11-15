@@ -1,11 +1,9 @@
 // Original business queries, with positional projection mapped to view fields.
 export const queries = {
-  conversations: [
-    {
-      sql: "SELECT c.id,c.subject,c.quote,e.name,to_char(c.created_at,'DD/MM/YYYY') FROM conversations c JOIN establishments e ON e.id=CASE WHEN c.a=$1 THEN c.b ELSE c.a END WHERE c.a=$1 OR c.b=$1 ORDER BY c.id DESC LIMIT 100",
-      fields: ["ID", "Subject", "Quote", "Name", "Date"],
-    },
-  ],
+  conversations: [{
+ sql: "SELECT c.id,c.subject,c.quote,e.name,to_char(COALESCE(latest.at,c.created_at),'DD/MM/YYYY HH24:MI'),(SELECT count(*) FROM messages m WHERE m.conversation_id=c.id AND m.establishment_id<>$1 AND m.id>COALESCE((SELECT last_message_id FROM conversation_reads WHERE conversation_id=c.id AND user_id=$2 AND establishment_id=$1),0)),COALESCE(latest.body,'') FROM conversations c JOIN establishments e ON e.id=CASE WHEN c.a=$1 THEN c.b ELSE c.a END LEFT JOIN LATERAL (SELECT m.created_at AS at,m.body FROM messages m WHERE m.conversation_id=c.id ORDER BY m.created_at DESC,m.id DESC LIMIT 1) latest ON true WHERE c.a=$1 OR c.b=$1 ORDER BY COALESCE(latest.at,c.created_at) DESC,c.id DESC LIMIT 100",
+ fields: ["ID","Subject","Quote","Name","Date","Unread","Preview"]
+ }],
   conversation: [
     {
       sql: "SELECT c.id,c.subject,c.quote,e.name FROM conversations c JOIN establishments e ON e.id=CASE WHEN c.a=$2 THEN c.b ELSE c.a END WHERE c.id=$1 AND (c.a=$2 OR c.b=$2)",
@@ -38,13 +36,13 @@ export const queries = {
   ],
   directory: [
     {
-      sql: "SELECT e.id,e.name,e.category,e.station,e.city,e.address,e.description,COALESCE((SELECT id FROM establishment_photos WHERE establishment_id=e.id AND kind='profile'),0),e.latitude,e.longitude FROM establishments e WHERE e.status='approved' AND e.id<>$1 AND NOT EXISTS (SELECT 1 FROM regexp_split_to_table(lower(translate($2::text, 'àâäéèêëîïôöùûüÿçœ', 'aaaeeeeiioouuuyco')), '\\s+') AS keyword(word) WHERE word <> '' AND lower(translate(concat_ws(' ',e.name,e.description,e.city,e.station,e.address,CASE e.category WHEN 'ski' THEN 'ski skis location louer matériel materiel équipement equipement neige glisse' WHEN 'spa' THEN 'spa bien-être bien etre bienetre wellness massage massages sauna hammam détente detente soins relaxation' WHEN 'activite' THEN 'activité activités activite activites loisirs excursion excursions sortie sorties sport sports aventure' WHEN 'hotel' THEN 'hôtel hôtels hotel hotels hébergement hebergement hébergements hebergements hôtellerie hotellerie' ELSE 'autres services service prestataire prestataires fournisseur fournisseurs' END), 'àâäéèêëîïôöùûüÿçœ', 'aaaeeeeiioouuuyco')) NOT LIKE '%' || replace(replace(replace(word, chr(92), chr(92)||chr(92)), '%', chr(92)||'%'), '_', chr(92)||'_') || '%') AND e.category=ANY($3::text[]) AND ($4='' OR e.station ILIKE '%'||$4||'%') AND ($5='' OR e.city ILIKE '%'||$5||'%') AND ($6='' OR e.address ILIKE '%'||$6||'%') AND ($7::double precision IS NULL OR (e.latitude BETWEEN $8::double precision AND $9::double precision AND CASE WHEN $10::double precision <= $11::double precision THEN e.longitude BETWEEN $10::double precision AND $11::double precision ELSE e.longitude >= $10::double precision OR e.longitude <= $11::double precision END)) ORDER BY e.name LIMIT 200",
+      sql: "SELECT e.id,e.name,e.category,e.station,e.city,e.address,e.description,COALESCE((SELECT id FROM establishment_photos WHERE establishment_id=e.id AND kind='profile'),0),e.latitude,e.longitude FROM establishments e WHERE e.status='approved' AND e.id<>$1 AND NOT EXISTS (SELECT 1 FROM regexp_split_to_table(lower(translate($2::text, 'àâäéèêëîïôöùûüÿçœ', 'aaaeeeeiioouuuyco')), '\\s+') AS keyword(word) WHERE word <> '' AND lower(translate(concat_ws(' ',e.name,e.description,e.city,e.station,e.address,e.provider_offer->>'activities',e.provider_offer->>'area',e.provider_offer->>'seasons',e.provider_offer->>'languages',e.provider_offer->>'audience',e.provider_offer->>'benefits',CASE e.category WHEN 'ski' THEN 'ski skis location louer matériel materiel équipement equipement neige glisse' WHEN 'spa' THEN 'spa bien-être bien etre bienetre wellness massage massages sauna hammam détente detente soins relaxation' WHEN 'activite' THEN 'activité activités activite activites loisirs excursion excursions sortie sorties sport sports aventure' WHEN 'hotel' THEN 'hôtel hôtels hotel hotels hébergement hebergement hébergements hebergements hôtellerie hotellerie' ELSE 'autres services service prestataire prestataires fournisseur fournisseurs' END), 'àâäéèêëîïôöùûüÿçœ', 'aaaeeeeiioouuuyco')) NOT LIKE '%' || replace(replace(replace(word, chr(92), chr(92)||chr(92)), '%', chr(92)||'%'), '_', chr(92)||'_') || '%') AND e.category=ANY($3::text[]) AND ($4='' OR e.station ILIKE '%'||$4||'%') AND ($5='' OR e.city ILIKE '%'||$5||'%') AND ($6='' OR e.address ILIKE '%'||$6||'%') AND ($7::double precision IS NULL OR (e.latitude BETWEEN $8::double precision AND $9::double precision AND CASE WHEN $10::double precision <= $11::double precision THEN e.longitude BETWEEN $10::double precision AND $11::double precision ELSE e.longitude >= $10::double precision OR e.longitude <= $11::double precision END)) ORDER BY e.name LIMIT 200",
       fields: ["ID", "Name", "Category", "Station", "City", "Address", "Description", "PhotoID", "Latitude", "Longitude"],
     },
   ],
   profile: [
     {
-      sql: "SELECT e.id,e.name,e.category,e.station,e.city,e.description,e.address,e.siret,COALESCE((SELECT id FROM establishment_photos WHERE establishment_id=e.id AND kind='profile'),0),e.latitude,e.longitude FROM establishments e WHERE e.id=$1 AND e.status='approved'",
+      sql: "SELECT e.id,e.name,e.category,e.station,e.city,e.description,e.address,e.siret,COALESCE((SELECT id FROM establishment_photos WHERE establishment_id=e.id AND kind='profile'),0),e.latitude,e.longitude,e.provider_offer FROM establishments e WHERE e.id=$1 AND e.status='approved'",
       fields: [
         "ID",
         "Name",
@@ -57,6 +55,7 @@ export const queries = {
         "PhotoID",
         "Latitude",
         "Longitude",
+        "ProviderOffer",
       ],
     },
   ],
@@ -87,7 +86,7 @@ export const queries = {
   ],
   partnerships: [
     {
-      sql: "SELECT p.id,e.id,e.name,p.status,p.version,v.terms,CASE WHEN p.a=$1 THEN p.accepted_a ELSE p.accepted_b END,to_char(p.created_at,'DD/MM/YYYY') FROM partnerships p JOIN establishments e ON e.id=CASE WHEN p.a=$1 THEN p.b ELSE p.a END JOIN partnership_versions v ON v.partnership_id=p.id AND v.version=p.version WHERE p.a=$1 OR p.b=$1 ORDER BY p.id DESC",
+      sql: "SELECT p.id,e.id,e.name,p.status,p.version,v.terms,CASE WHEN p.a=$1 THEN p.accepted_a ELSE p.accepted_b END,to_char(p.created_at,'DD/MM/YYYY'),v.details,(p.status='pending' AND p.created_at < now()-interval '7 days'),(COALESCE((SELECT next_review FROM partnership_reviews WHERE partnership_id=p.id AND establishment_id=$1 ORDER BY created_at DESC,id DESC LIMIT 1),NULLIF(v.details->>'renewal','')::date) <= CURRENT_DATE+7),COALESCE((SELECT jsonb_agg(r ORDER BY r.created_at DESC) FROM (SELECT e.name AS name,r.outcome,r.note,r.next_review,to_char(r.created_at,'DD/MM/YYYY') AS created_at FROM partnership_reviews r JOIN establishments e ON e.id=r.establishment_id WHERE r.partnership_id=p.id ORDER BY r.created_at DESC,r.id DESC LIMIT 20) r),'[]'::jsonb) FROM partnerships p JOIN establishments e ON e.id=CASE WHEN p.a=$1 THEN p.b ELSE p.a END JOIN partnership_versions v ON v.partnership_id=p.id AND v.version=p.version WHERE p.a=$1 OR p.b=$1 ORDER BY p.id DESC",
       fields: [
         "ID",
         "OtherID",
@@ -97,6 +96,7 @@ export const queries = {
         "Terms",
         "Accepted",
         "Date",
+        "Details", "PendingReminder", "ReviewReminder", "Reviews",
       ],
     },
   ],
@@ -108,8 +108,8 @@ export const queries = {
   ],
   history: [
     {
-      sql: "SELECT v.version,v.terms,u.name,to_char(v.created_at,'DD/MM/YYYY HH24:MI') FROM partnership_versions v JOIN partnerships p ON p.id=v.partnership_id JOIN users u ON u.id=v.author_id WHERE p.id=$1 AND (p.a=$2 OR p.b=$2) ORDER BY v.version DESC",
-      fields: ["Version", "Terms", "Name", "Date"],
+      sql: "SELECT v.version,v.terms,u.name,to_char(v.created_at,'DD/MM/YYYY HH24:MI'),v.details FROM partnership_versions v JOIN partnerships p ON p.id=v.partnership_id JOIN users u ON u.id=v.author_id WHERE p.id=$1 AND (p.a=$2 OR p.b=$2) ORDER BY v.version DESC",
+      fields: ["Version", "Terms", "Name", "Date", "Details"],
     },
   ],
 } as const;

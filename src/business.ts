@@ -1,3 +1,6 @@
+import { notify } from "./notifications.js";
+import { providerOffer } from "./provider-offer.js";
+import { partnershipDetails } from "./partnership-details.js";
 import type pg from "pg";
 import type { Hono } from "hono";
 import { createHash, randomBytes } from "node:crypto";
@@ -11,7 +14,7 @@ import {
   text,
   validPDF,
 } from "./validation.js";
-import { pair, propose, partnershipAction, reject } from "./partnerships.js";
+import { pair, propose, partnershipAction, reject, reviewPartnership } from "./partnerships.js";
 import { mailer } from "./mail.js";
 import { readProfilePhoto } from "./photos.js";
 import { scanWithClamAV } from "./clamav.js";
@@ -122,6 +125,13 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
       c.get("user")!.EstID,
     ]);
     return c.redirect(`/etablissements/${c.get("user")!.EstID}`, 303);
+  });
+  app.post("/fiche/offre", async c => {
+    const u=c.get("user")!;
+    if(u.Role!=="owner" || u.EstCategory==="hotel") reject(403,"Action réservée au responsable d’un prestataire.");
+    const offer=providerOffer.parse(await c.req.parseBody());
+    await pool.query("UPDATE establishments SET provider_offer=$1 WHERE id=$2",[offer,u.EstID]);
+    return c.redirect("/compte#offre",303);
   });
   app.post("/fiche/adresse", async (c) => {
     const u = c.get("user")!,
@@ -306,6 +316,7 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
         "INSERT INTO messages(conversation_id,sender_id,establishment_id,body) VALUES($1,$2,$3,$4)",
         [conv.id, u.ID, u.EstID, body],
       );
+      await notify(tx,other,"message",Number(conv.id),"Nouvelle discussion ou demande de devis");
       return conv.id;
     });
     return c.redirect(`/messages/${id}`, 303);
@@ -340,6 +351,8 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
         )
       ).rows[0];
       if (!m) reject(404, "Conversation introuvable.");
+      const target=(await tx.query("SELECT CASE WHEN a=$2 THEN b ELSE a END AS id FROM conversations WHERE id=$1",[id,u.EstID])).rows[0];
+      await notify(tx,Number(target.id),"message",id,"Nouveau message");
       if (bytes)
         await tx.query(
           "INSERT INTO attachments(message_id,name,data) VALUES($1,$2,$3)",
@@ -374,12 +387,17 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
       u.EstID,
       positiveId.parse(f.other),
       text(10000).parse(f.terms),
+      partnershipDetails.parse(f),
     );
     return c.redirect("/partenariats", 303);
   });
   app.post("/partenariats/:id/:action", async (c) => {
     const f = await c.req.parseBody(),
       u = c.get("user")!;
+    if (c.req.param("action") === "bilan") {
+      await reviewPartnership(pool,u.ID,u.EstID,positiveId.parse(c.req.param("id")),f);
+      return c.redirect("/partenariats",303);
+    }
     await partnershipAction(
       pool,
       u.ID,
@@ -388,6 +406,7 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
       c.req.param("action"),
       positiveId.parse(f.version),
       text(10000, 0).parse(f.terms || ""),
+      partnershipDetails.parse(f),
     );
     return c.redirect("/partenariats", 303);
   });

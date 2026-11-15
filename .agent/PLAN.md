@@ -143,3 +143,11 @@ Nouvelle base vide, aucun import des anciens comptes ou données, aucune suppres
 ## Confort de connexion et espace entreprise — 11 novembre 2026
 
 Le porteur demande de ne plus ressaisir l’A2F à chaque connexion et d’aligner tout l’espace professionnel sur l’accueil. Utiliser les appareils de confiance natifs Better Auth : cookie signé HttpOnly, validité de 30 jours renouvelée à la connexion, validation serveur conservée et contrôle A2F pour tout appareil inconnu. Ajouter une case explicite au formulaire et la révocation des appareils depuis Sécurité ; la récupération du mot de passe révoque aussi cette confiance. Aucun JWT supplémentaire. Étendre l’identité bleu nuit/or, le logo, le fond chaud et les titres de l’accueil aux pages de connexion, sécurité et entreprise, avec navigation responsive et accès administrateur explicite.
+
+## Suivi des partenariats — décision du 16 novembre 2026
+
+Le porteur valide les conditions structurées (avantages, engagements, durée et renouvellement), leur historique partagé et des rappels de suivi. Les responsables peuvent partager un bilan de collaboration. Ces bilans ne modifient pas les conditions acceptées ; les changements de conditions demandent toujours une nouvelle acceptation bilatérale. Aucun suivi des ventes, réservations ou commissions ajouté. Les CGU/CGV de Hoslink restent à finaliser séparément.
+
+## Notifications et offres prestataires — décision du 16 novembre 2026
+
+Le porteur demande les notifications de messages et demandes, les compteurs de non-lus et le classement des discussions par dernière activité. Les notifications sont privées au membre et à l’établissement ; les demandes de partenariat s’adressent aux responsables. Les offres prestataires distinguent activités, zone d’intervention, saisons, langues, clientèle et avantages et alimentent la recherche.

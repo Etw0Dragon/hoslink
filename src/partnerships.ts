@@ -1,6 +1,8 @@
+import { notify } from "./notifications.js";
 import type pg from "pg";
 import { transaction, type Queryable } from "./db/index.js";
 import { HTTPException } from "hono/http-exception";
+import { partnershipDetails, reviewInput, type PartnershipDetails } from "./partnership-details.js";
 export const reject = (
   status: 400 | 403 | 404 | 409 | 503,
   message: string,
@@ -40,6 +42,7 @@ export async function propose(
   eid: number,
   other: number,
   terms: string,
+  details: PartnershipDetails = partnershipDetails.parse({}),
 ) {
   if (other === eid) reject(400, "Choisissez un autre établissement.");
   return transaction(pool, async (tx) => {
@@ -60,9 +63,10 @@ export async function propose(
     );
     if (!p.rowCount) reject(409, "Une relation existe déjà.");
     await tx.query(
-      "INSERT INTO partnership_versions(partnership_id,version,terms,author_id) VALUES($1,1,$2,$3)",
-      [p.rows[0].id, terms, uid],
+      "INSERT INTO partnership_versions(partnership_id,version,terms,author_id,details) VALUES($1,1,$2,$3,$4)",
+      [p.rows[0].id, terms, uid, details],
     );
+    await notify(tx,other,"partnership",Number(p.rows[0].id),"Nouvelle proposition de partenariat");
     return p.rows[0].id;
   });
 }
@@ -74,6 +78,7 @@ export async function partnershipAction(
   action: string,
   version: number,
   terms: string,
+  details: PartnershipDetails = partnershipDetails.parse({}),
 ) {
   await reconcile(pool);
   return transaction(pool, async (tx) => {
@@ -116,17 +121,19 @@ export async function partnershipAction(
       if (action === "reactiver") {
         if (!["suspended", "ended"].includes(p.status))
           reject(409, "Réactivation impossible.");
-        terms = (
+        const previous = (
           await tx.query(
-            "SELECT terms FROM partnership_versions WHERE partnership_id=$1 AND version=$2",
+            "SELECT terms,details FROM partnership_versions WHERE partnership_id=$1 AND version=$2",
             [id, version],
           )
-        ).rows[0].terms;
+        ).rows[0];
+        terms = previous.terms;
+        details = previous.details;
       }
       if (!terms) reject(400, "Conditions obligatoires.");
       await tx.query(
-        "INSERT INTO partnership_versions(partnership_id,version,terms,author_id) VALUES($1,$2,$3,$4)",
-        [id, version + 1, terms, uid],
+        "INSERT INTO partnership_versions(partnership_id,version,terms,author_id,details) VALUES($1,$2,$3,$4,$5)",
+        [id, version + 1, terms, uid, details],
       );
       await tx.query(
         "UPDATE partnerships SET version=$1,status='pending',accepted_a=$2,accepted_b=$3 WHERE id=$4",
@@ -150,9 +157,20 @@ export async function partnershipAction(
         [eid, id],
       );
     } else reject(404, "Action inconnue.");
+    if (["accepter","modifier","reactiver","terminer"].includes(action))
+      await notify(tx, Number(p.a)===eid ? Number(p.b) : Number(p.a), "partnership",id,"Mise à jour d’un partenariat");
     await tx.query(
       "INSERT INTO audit(user_id,action,entity_id) VALUES($1,$2,$3)",
       [uid, `partnership:${action}`, id],
     );
   });
+}
+
+export async function reviewPartnership(pool: pg.Pool, uid: number, eid: number, id: number, input: unknown) {
+ const data = reviewInput.parse(input);
+ return transaction(pool, async tx => {
+  const allowed = await tx.query("SELECT id FROM partnerships WHERE id=$1 AND (a=$2 OR b=$2) FOR UPDATE", [id,eid]);
+  if (!allowed.rowCount) reject(404,"Accord introuvable.");
+  await tx.query("INSERT INTO partnership_reviews(partnership_id,establishment_id,user_id,outcome,note,next_review) VALUES($1,$2,$3,$4,$5,$6)",[id,eid,uid,data.outcome,data.note,data.next_review || null]);
+ });
 }

@@ -83,7 +83,7 @@ export function pageHandlers(pool: pg.Pool, cfg: Config) {
         if (eid) {
           const establishment = (
             await pool.query(
-              "SELECT address,city,latitude,longitude FROM establishments WHERE id=$1",
+              "SELECT address,city,latitude,longitude,provider_offer FROM establishments WHERE id=$1",
               [eid],
             )
           ).rows[0];
@@ -104,6 +104,7 @@ export function pageHandlers(pool: pg.Pool, cfg: Config) {
           data.PhotoID = Number(profilePhoto?.id || 0);
           data.Photos = photos;
           data.GalleryRemaining = Math.max(0, 8 - photos.length);
+          data.ProviderOffer = establishment.provider_offer;
           data.Address = establishment.address;
           data.City = establishment.city;
           data.Latitude = establishment.latitude;
@@ -199,14 +200,17 @@ export function pageHandlers(pool: pg.Pool, cfg: Config) {
         };
         break;
       case "conversations":
-        data.Items = await project(pool, q[0], [eid]);
+        data.Items = await project(pool, q[0], [eid,u.ID]);
         break;
       case "conversation": {
         const rows = await project(pool, q[0], [id, eid]);
         if (!rows.length) reject(404, "Conversation introuvable.");
         data.Item = rows[0];
         data.Messages = await project(pool, q[1], [id]);
-        data.Items = await project(pool, queries.conversations[0], [eid]);
+        const last = Math.max(0,...(data.Messages as any[]).map(m=>Number(m.ID)));
+        await pool.query("INSERT INTO conversation_reads(user_id,establishment_id,conversation_id,last_message_id) VALUES($1,$2,$3,$4) ON CONFLICT(user_id,establishment_id,conversation_id) DO UPDATE SET last_message_id=GREATEST(conversation_reads.last_message_id,EXCLUDED.last_message_id)",[u.ID,eid,id,last]);
+        await pool.query("UPDATE notifications SET read_at=now() WHERE user_id=$1 AND establishment_id=$2 AND kind='message' AND entity_id=$3 AND created_at <= COALESCE((SELECT created_at FROM messages WHERE id=$4),'-infinity'::timestamptz)",[u.ID,eid,id,last]);
+        data.Items = await project(pool, queries.conversations[0], [eid,u.ID]);
         break;
       }
       case "partnerships":
