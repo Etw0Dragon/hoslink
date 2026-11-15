@@ -82,7 +82,12 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
     c.set("csrf", csrf);
     c.set("user", null);
     if (!["GET", "HEAD", "OPTIONS"].includes(c.req.method)) {
-      if (c.req.header("Origin") !== cfg.BASE_URL)
+      const origin = c.req.header("Origin");
+      const referer = c.req.header("Referer");
+      const refererOrigin = (() => {
+        try { return referer ? new URL(referer).origin : ""; } catch { return ""; }
+      })();
+      if (origin ? origin !== cfg.BASE_URL : refererOrigin !== cfg.BASE_URL)
         return c.text("Origine refusée.", 403);
       const f = await c.req.parseBody(),
         provided = String(f.csrf || "");
