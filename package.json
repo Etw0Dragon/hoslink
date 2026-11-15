@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "migrate": "tsx --env-file=.env.node src/db/migrate.ts",
     "admin": "tsx --env-file=.env.node src/admin.ts",
+    "db:reset": "tsx --env-file-if-exists=.env.node src/reset-db.ts",
     "seed:demo": "tsx --env-file-if-exists=.env.node src/seed-demo.ts",
     "test": "tsx --test tests/*.test.ts",
     "test:integration": "tsx --test tests/integration.test.ts"

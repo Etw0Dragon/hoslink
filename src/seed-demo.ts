@@ -1,3 +1,4 @@
+import { demoLocations } from "./demo-locations.js";
 import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { fakerFR as faker } from "@faker-js/faker";
@@ -24,6 +25,8 @@ export type DemoRecord = {
   company: string;
   city: string;
   address: string;
+  latitude: number;
+  longitude: number;
   category: string;
   station: string;
   email: string;
@@ -47,18 +50,21 @@ export function parseCounts(args: string[]) {
 }
 
 export function makeDemoRecord(kind: DemoKind, number: number): DemoRecord {
-  const [station, city] = faker.helpers.arrayElement(destinations);
+  const location = demoLocations[(number - 1 + (kind === "provider" ? 1 : 0)) % demoLocations.length]!;
+  const city = location.city, station = location.city;
   const siren = faker.string.numeric(9);
   const serial = faker.string.numeric(5);
   const suffix = String(number).padStart(2, "0");
   return {
     kind,
     number,
-    name: kind === "hotel" ? `Hôtel ${faker.company.name()}` : `${faker.company.name()} ${faker.helpers.arrayElement(["Bien-être", "Loisirs", "Mobilité", "Gastronomie"])}`,
+    name: kind === "hotel" ? `[DÉMO] Hôtel ${faker.company.name()}` : `[DÉMO] ${faker.company.name()} ${faker.helpers.arrayElement(["Bien-être", "Loisirs", "Mobilité", "Gastronomie"])}`,
     company: faker.company.name(),
     city,
     station,
-    address: faker.location.streetAddress(),
+    address: location.address,
+    latitude: location.latitude,
+    longitude: location.longitude,
     category: kind === "hotel" ? "hotel" : faker.helpers.arrayElement(categories),
     email: `hoslink-demo-${kind}-${suffix}@example.invalid`,
     siren,
@@ -115,9 +121,9 @@ export async function seedDemo(env: NodeJS.ProcessEnv, args: string[]) {
           [record.siren, record.company],
         );
         const establishment = await tx.query<{ id: string }>(
-          `INSERT INTO establishments(company_id,siret,name,category,station,city,address,description,status)
-           VALUES($1,$2,$3,$4,$5,$6,$7,$8,'approved') RETURNING id`,
-          [company.rows[0]!.id, record.siret, record.name, record.category, record.station, record.city, record.address, faker.company.catchPhrase()],
+          `INSERT INTO establishments(company_id,siret,name,category,station,city,address,description,status,latitude,longitude)
+           VALUES($1,$2,$3,$4,$5,$6,$7,$8,'approved',$9,$10) RETURNING id`,
+          [company.rows[0]!.id, record.siret, record.name, record.category, record.station, record.city, record.address, "Établissement fictif pour tester Hoslink. Adresse d’un repère public réel, sans lien avec son exploitant.", record.latitude, record.longitude],
         );
         await tx.query("INSERT INTO memberships(user_id,establishment_id,role) VALUES($1,$2,'owner')", [profile.rows[0]!.id, establishment.rows[0]!.id]);
         await tx.query("UPDATE profiles SET current_establishment_id=$1 WHERE id=$2", [establishment.rows[0]!.id, profile.rows[0]!.id]);
