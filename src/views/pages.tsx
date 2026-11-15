@@ -153,7 +153,7 @@ views["account"] = (d, p) =>
                     name="address"
                     data-address-field
                     required
-                    maxlength="500" /></label
+                    maxlength="500" /></label>
                 ${geocodeWidget(d)}
                 <label
                   >Présentation<textarea
@@ -577,7 +577,7 @@ views["directory"] = (d, p) => {
             <div class="osm-geocode-results" data-map-location-results></div>
           </div>
           <div class="directory-map" data-directory-map data-map-tile-url="${d.MapTileURL}" data-map-attribution="${d.MapTileAttribution}" data-map-markers="${JSON.stringify(mapItems)}" data-map-bounds="${JSON.stringify(d.Bounds || [])}" aria-label="Carte des établissements trouvés"></div>
-          ${unlocated ? html`<p class="muted">${unlocated} fiche${unlocated === 1 ? "" : "s"} n’a/ont pas encore de position vérifiée et reste${unlocated === 1 ? "" : "nt"} visible${unlocated === 1 ? "" : "s"} dans la liste.</p>` : html``}
+          ${unlocated ? html`<p class="muted">${unlocated} fiche${unlocated === 1 ? " n’a" : "s n’ont"} pas encore de coordonnées et ${unlocated === 1 ? "reste visible" : "restent visibles"} dans la liste. Le responsable doit vérifier et enregistrer son adresse dans « Mon établissement » pour afficher un point précis.</p>` : html``}
           <small>${d.MapTileAttribution} · Données de géocodage © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer">Signaler un problème de carte</a></small>
         </section>
       </aside>
