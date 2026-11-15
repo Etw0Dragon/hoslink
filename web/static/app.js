@@ -39,3 +39,31 @@ if (window.matchMedia("(max-width: 760px)").matches) {
   if (nav && active)
     nav.scrollLeft = Math.max(0, active.offsetLeft - nav.offsetLeft - 20);
 }
+
+// Prévisualisation locale des photos avant enregistrement.
+document.querySelectorAll('[data-photo-picker]').forEach((input) => {
+  let previewUrl;
+  input.addEventListener('change', () => {
+    const key = input.dataset.photoPicker;
+    const name = document.querySelector(`[data-upload-name="${key}"]`);
+    const preview = document.querySelector(`[data-upload-preview="${key}"]`);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    const file = input.files?.[0];
+    if (name) name.textContent = file ? file.name : 'Aucune nouvelle photo sélectionnée';
+    input.setCustomValidity('');
+    if (!file) return;
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 4 * 1024 * 1024) {
+      input.setCustomValidity('Choisissez une image JPEG ou PNG de 4 Mo maximum.');
+      input.reportValidity();
+      if (name) name.textContent = 'Image JPEG ou PNG de 4 Mo maximum attendue.';
+      return;
+    }
+    if (preview) {
+      const img = document.createElement('img');
+      previewUrl = URL.createObjectURL(file);
+      img.src = previewUrl;
+      img.alt = 'Aperçu de la photo sélectionnée';
+      preview.replaceChildren(img);
+    }
+  });
+});
