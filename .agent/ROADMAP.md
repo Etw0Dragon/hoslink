@@ -179,6 +179,10 @@ Vérifications locales isolées du 15 novembre 2026 : typecheck, build npm et bu
 
 ## Annuaire cartographique et adresses OSM
 
+La recherche combine désormais tous les mots saisis dans les champs de la fiche et les synonymes des catégories, sans distinction de casse ni des accents français courants. Chaque mot doit être présent, éventuellement dans un champ différent (ex. « location ski Annecy »). Les caractères `%` et `_` sont traités comme une saisie littérale.
+
+Recherche par mots-clés corrigée : les catégories et leurs libellés (ski/location de skis, spa/bien-être, activités, hôtels, autres services), la commune, la destination et l’adresse sont recherchés en complément du nom et de la description. Les espaces en début/fin de saisie sont retirés ; les restrictions de catégories selon l’établissement connecté restent appliquées.
+
 Correction de présentation : Leaflet est maintenant chargé par le layout professionnel commun ; le rendu serveur ajoute le doctype HTML pour éviter le mode Quirks. Les cases des catégories utilisent un format compact de 18 px et le formulaire de création corrige un chevron parasite. Typage et compilation vérifiés localement ; recette visuelle distante à confirmer après déploiement.
 
 Les catégories de prestataires sont sélectionnables ensemble ; les filtres combinent activité, station/destination, commune, adresse et zone visible sur la carte. Les résultats restent limités aux catégories compatibles avec le type d’établissement connecté. Les fiches affichent leurs adresses exactes et les résultats localisés sur une carte Leaflet/OpenStreetMap. La carte utilise uniquement les tuiles visibles, attribution incluse.
@@ -207,3 +211,7 @@ Les filtres de rayon, préférences structurées et recommandations restent en a
 - Vérifier le scanner antivirus et l’envoi SMTP, puis faire une recette complète avec au moins un hôtel et un prestataire avant l’ouverture du pilote.
 
 Les décisions commerciales et d’exploitation encore ouvertes sont détaillées dans `.agent/PLAN.md`. Aucun paiement, service payant ou lancement de production n’est activé par cette feuille de route.
+
+## Messagerie au format chat
+
+Interface à deux panneaux : liste des discussions, bulles reçues/envoyées distinguées par établissement, formulaire compact et pièces jointes PDF privées conservées. Adaptation mobile avec retour aux discussions. L’interface reste rendue côté serveur ; réception en temps réel et accusés de lecture non implémentés. Typage, compilation et 11 tests locaux réussis ; intégration PostgreSQL ignorée sans URL et recette visuelle navigateur restante.

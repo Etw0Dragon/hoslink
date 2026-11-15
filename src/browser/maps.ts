@@ -98,6 +98,15 @@ document.querySelectorAll<HTMLElement>("[data-osm-geocode]").forEach((widget) =>
   let preview: L.Map | undefined,
     marker: L.Marker | undefined;
 
+  // Afficher un fond de carte même avant la sélection d’une adresse.
+  if (mapElement) {
+    preview = L.map(mapElement, { scrollWheelZoom: false }).setView([46.6, 2.4], 5);
+    addBaseLayer(preview, mapElement.dataset.mapTileUrl || defaultTiles, mapElement.dataset.mapAttribution || defaultAttribution);
+    const observer = new ResizeObserver(() => preview?.invalidateSize());
+    observer.observe(mapElement);
+    widget.closest("details")?.addEventListener("toggle", () => preview?.invalidateSize());
+  }
+
   const showPreview = (latitude: number, longitude: number) => {
     if (!mapElement) return;
     mapElement.dataset.lat = String(latitude);
@@ -241,9 +250,11 @@ document.querySelectorAll<HTMLElement>("[data-directory-map]").forEach((element)
 
 document.querySelectorAll<HTMLElement>("[data-osm-single-map]").forEach((element) => {
   const latitude = Number(element.dataset.lat), longitude = Number(element.dataset.lon);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
-  const map = L.map(element, { scrollWheelZoom: false }).setView([latitude, longitude], 16);
+  const located = !!element.dataset.lat && !!element.dataset.lon && Number.isFinite(latitude) && Number.isFinite(longitude);
+  const map = L.map(element, { scrollWheelZoom: false }).setView(located ? [latitude, longitude] : [46.6, 2.4], located ? 16 : 5);
   addBaseLayer(map, element.dataset.mapTileUrl || defaultTiles, element.dataset.mapAttribution || defaultAttribution);
-  pin(latitude, longitude).addTo(map);
+  if (located) pin(latitude, longitude).addTo(map).bindPopup(popupContent({ name: element.dataset.mapName, address: element.dataset.mapAddress }));
+  const observer = new ResizeObserver(() => map.invalidateSize());
+  observer.observe(element);
   window.setTimeout(() => map.invalidateSize(), 50);
 });

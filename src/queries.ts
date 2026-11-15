@@ -12,8 +12,8 @@ export const queries = {
       fields: ["ID", "Subject", "Quote", "Name"],
     },
     {
-      sql: "SELECT m.id,e.name,m.body,to_char(m.created_at,'DD/MM/YYYY HH24:MI'),COALESCE(d.id,0),COALESCE(d.name,'') FROM messages m JOIN establishments e ON e.id=m.establishment_id LEFT JOIN attachments d ON d.message_id=m.id WHERE m.conversation_id=$1 ORDER BY m.id LIMIT 500",
-      fields: ["ID", "Name", "Body", "Date", "OtherID", "FileName"],
+      sql: "SELECT m.id,e.name,m.body,to_char(m.created_at,'DD/MM/YYYY HH24:MI'),COALESCE(d.id,0),COALESCE(d.name,''),m.establishment_id FROM messages m JOIN establishments e ON e.id=m.establishment_id LEFT JOIN attachments d ON d.message_id=m.id WHERE m.conversation_id=$1 ORDER BY m.id LIMIT 500",
+      fields: ["ID", "Name", "Body", "Date", "OtherID", "FileName", "EstablishmentID"],
     },
   ],
   dashboard: [
@@ -38,7 +38,7 @@ export const queries = {
   ],
   directory: [
     {
-      sql: "SELECT e.id,e.name,e.category,e.station,e.city,e.address,e.description,COALESCE((SELECT id FROM establishment_photos WHERE establishment_id=e.id AND kind='profile'),0),e.latitude,e.longitude FROM establishments e WHERE e.status='approved' AND e.id<>$1 AND ($2='' OR e.name ILIKE '%'||$2||'%' OR e.description ILIKE '%'||$2||'%') AND e.category=ANY($3::text[]) AND ($4='' OR e.station ILIKE '%'||$4||'%') AND ($5='' OR e.city ILIKE '%'||$5||'%') AND ($6='' OR e.address ILIKE '%'||$6||'%') AND ($7::double precision IS NULL OR (e.latitude BETWEEN $8::double precision AND $9::double precision AND CASE WHEN $10::double precision <= $11::double precision THEN e.longitude BETWEEN $10::double precision AND $11::double precision ELSE e.longitude >= $10::double precision OR e.longitude <= $11::double precision END)) ORDER BY e.name LIMIT 200",
+      sql: "SELECT e.id,e.name,e.category,e.station,e.city,e.address,e.description,COALESCE((SELECT id FROM establishment_photos WHERE establishment_id=e.id AND kind='profile'),0),e.latitude,e.longitude FROM establishments e WHERE e.status='approved' AND e.id<>$1 AND NOT EXISTS (SELECT 1 FROM regexp_split_to_table(lower(translate($2::text, 'àâäéèêëîïôöùûüÿçœ', 'aaaeeeeiioouuuyco')), '\\s+') AS keyword(word) WHERE word <> '' AND lower(translate(concat_ws(' ',e.name,e.description,e.city,e.station,e.address,CASE e.category WHEN 'ski' THEN 'ski skis location louer matériel materiel équipement equipement neige glisse' WHEN 'spa' THEN 'spa bien-être bien etre bienetre wellness massage massages sauna hammam détente detente soins relaxation' WHEN 'activite' THEN 'activité activités activite activites loisirs excursion excursions sortie sorties sport sports aventure' WHEN 'hotel' THEN 'hôtel hôtels hotel hotels hébergement hebergement hébergements hebergements hôtellerie hotellerie' ELSE 'autres services service prestataire prestataires fournisseur fournisseurs' END), 'àâäéèêëîïôöùûüÿçœ', 'aaaeeeeiioouuuyco')) NOT LIKE '%' || replace(replace(replace(word, chr(92), chr(92)||chr(92)), '%', chr(92)||'%'), '_', chr(92)||'_') || '%') AND e.category=ANY($3::text[]) AND ($4='' OR e.station ILIKE '%'||$4||'%') AND ($5='' OR e.city ILIKE '%'||$5||'%') AND ($6='' OR e.address ILIKE '%'||$6||'%') AND ($7::double precision IS NULL OR (e.latitude BETWEEN $8::double precision AND $9::double precision AND CASE WHEN $10::double precision <= $11::double precision THEN e.longitude BETWEEN $10::double precision AND $11::double precision ELSE e.longitude >= $10::double precision OR e.longitude <= $11::double precision END)) ORDER BY e.name LIMIT 200",
       fields: ["ID", "Name", "Category", "Station", "City", "Address", "Description", "PhotoID", "Latitude", "Longitude"],
     },
   ],

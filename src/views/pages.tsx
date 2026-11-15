@@ -340,82 +340,9 @@ views["auth"] = (d, p) =>
       }
     </div>
   </div>`;
-views["conversation"] = (d, p) =>
-  html`<a class="back" href="/messages">← Tous les échanges</a>
-    <h1>${d.Item.Subject}</h1>
-    <div class="thread">
-      ${
-        d.Messages?.length
-          ? d.Messages.map(
-              (row: ViewData) =>
-                html`<article class="message card">
-                  <div class="split">
-                    <strong>${row.Name}</strong><small>${row.Date}</small>
-                  </div>
-                  <p class="pre">${row.Body}</p>
-                  ${truth(row.OtherID) ? html`<a class="attachment" href="/documents/${row.OtherID}">↓ ${row.FileName}</a>` : html``}
-                </article>`,
-            )
-          : html``
-      }
-    </div>
-    <section class="card">
-      <h2>Poursuivre l’échange</h2>
-      <form
-        action="/messages/${d.Item.ID}"
-        method="post"
-        enctype="multipart/form-data"
-      >
-        ${views["csrf"](d, p)}<label
-          >Message<textarea
-            name="body"
-            maxlength="10000"
-            rows="4"
-          ></textarea></label
-        ><label
-          >Joindre un devis PDF · 5 Mo maximum<input
-            type="file"
-            name="document"
-            accept="application/pdf,.pdf" /></label
-        ><button>Envoyer ↗</button>
-      </form>
-    </section>`;
-views["conversations"] = (d, p) =>
-  html`<div class="page-heading">
-      <div>
-        <h1>Messages & devis.</h1>
-        <p>Faites avancer vos projets avec les équipes de vos partenaires.</p>
-      </div>
-      <a class="button secondary" href="/annuaire"
-        >Contacter un professionnel ${views["arrow"](d, p)}</a
-      >
-    </div>
-    <div class="card">
-      ${
-        d.Items?.length
-          ? d.Items.map(
-              (row: ViewData) =>
-                html`<a class="conversation-row" href="/messages/${row.ID}"
-                  ><div>
-                    <strong>${row.Name}</strong>
-                    <p>${row.Subject}</p>
-                  </div>
-                  <span
-                    >${truth(row.Quote) ? html`<span class="badge">Devis</span>` : html``}
-                    <small>${row.Date}</small> ↗</span
-                  ></a
-                >`,
-            )
-          : html`<div class="empty">
-              <h2>Votre première conversation vous attend.</h2>
-              <p>
-                Découvrez le réseau et contactez un professionnel pour parler de
-                vos projets.
-              </p>
-              <a class="button" href="/annuaire">Explorer le réseau ↗</a>
-            </div>`
-      }
-    </div>`;
+const chatList = (d: ViewData) => html`<aside class="chat-sidebar"><div class="chat-list-heading"><h2>Discussions</h2><a href="/annuaire" class="button secondary" aria-label="Nouvelle conversation">＋</a></div><nav aria-label="Conversations">${(d.Items || []).map((row: ViewData) => html`<a class="chat-contact ${String(d.Item?.ID) === String(row.ID) ? "selected" : ""}" href="/messages/${row.ID}" ${String(d.Item?.ID) === String(row.ID) ? html`aria-current="page"` : html``}><span class="chat-avatar">${initial(row.Name)}</span><span class="chat-contact-copy"><strong>${row.Name}</strong><small>${row.Subject}</small></span><time>${row.Date || ""}</time></a>`)}</nav>${!d.Items?.length ? html`<p class="chat-list-empty">Aucune discussion pour le moment.</p>` : html``}</aside>`;
+views["conversation"] = (d, p) => html`<div class="chat-layout chat-open">${chatList(d)}<section class="chat-main" aria-label="Conversation avec ${d.Item.Name}"><header class="chat-header"><a class="chat-back" href="/messages" aria-label="Retour aux discussions">←</a><span class="chat-avatar">${initial(d.Item.Name)}</span><div><h1>${d.Item.Name}</h1><p>${d.Item.Subject}</p></div>${d.Item.Quote ? html`<span class="badge">Devis</span>` : html``}</header><div class="chat-messages" role="log" aria-label="Messages">${(d.Messages || []).map((row: ViewData) => html`<article class="chat-bubble ${String(row.EstablishmentID) === String(d.User.EstID) ? "sent" : "received"}"><strong>${row.Name}</strong><p>${row.Body}</p>${row.OtherID ? html`<a class="attachment" href="/documents/${row.OtherID}">↓ ${row.FileName}</a>` : html``}<time>${row.Date}</time></article>`)}<div id="dernier-message"></div></div><form class="chat-composer" action="/messages/${d.Item.ID}#dernier-message" method="post" enctype="multipart/form-data">${views["csrf"](d,p)}<label class="visually-hidden" for="chat-body">Votre message</label><textarea id="chat-body" name="body" maxlength="10000" rows="2" placeholder="Écrivez votre message…"></textarea><div class="chat-composer-actions"><label class="chat-file">Joindre un PDF · 5 Mo<input type="file" name="document" accept="application/pdf,.pdf" /></label><button>Envoyer ↑</button></div></form></section></div>`;
+views["conversations"] = (d, p) => html`<div class="page-heading"><div><h1>Votre messagerie.</h1><p>Un espace pour échanger et construire vos partenariats.</p></div></div><div class="chat-layout">${chatList(d)}<section class="chat-welcome"><span class="chat-welcome-icon">↔</span><h2>Gardez le contact.</h2><p>Sélectionnez une discussion pour retrouver vos messages et devis.</p><a class="button" href="/annuaire">Nouvelle conversation ＋</a><small>Vos échanges sont réservés aux équipes des établissements concernés.</small></section></div>`;
 views["dashboard"] = (d, p) => html`
   <div class="page-heading">
     <div>
@@ -1431,7 +1358,13 @@ views["profile"] = (d, p) =>
         ${truth(d.User.EstID !== d.Item.ID) ? html`<div class="actions">${truth(d.User.Role === "owner") ? html`<a class="button" href="#proposition">Proposer un partenariat ${views["arrow"](d, p)}</a>` : html``}<a class="button secondary" href="#contact">Contacter l’équipe</a></div>` : html``}
       </div>
     </div>
-    ${truth(d.Item.Latitude != null && d.Item.Longitude != null) ? html`<section class="card profile-location"><h2>Localisation</h2><div class="profile-map" data-osm-single-map data-map-tile-url="${d.MapTileURL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png"}" data-map-attribution="${d.MapTileAttribution || "© OpenStreetMap contributors"}" data-lat="${d.Item.Latitude}" data-lon="${d.Item.Longitude}" aria-label="Carte de l’établissement"></div><small>${d.MapTileAttribution || "© OpenStreetMap contributors"}</small></section>` : html``}
+    <section class="card profile-location">
+      <h2>Localisation</h2>
+      <p>${d.Item.Address || d.Item.Body}${truth(d.Item.City) ? html` · ${d.Item.City}` : html``}</p>
+      ${d.Item.Latitude == null || d.Item.Longitude == null ? html`<p class="muted">La position précise n’a pas encore été renseignée par cet établissement.</p>` : html``}
+      <div class="profile-map" data-osm-single-map data-map-tile-url="${d.MapTileURL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png"}" data-map-attribution="${d.MapTileAttribution || "© OpenStreetMap contributors"}" data-lat="${d.Item.Latitude ?? ""}" data-lon="${d.Item.Longitude ?? ""}" data-map-name="${d.Item.Name}" data-map-address="${d.Item.Address || d.Item.Body || ""}" aria-label="Carte de l’établissement"></div>
+      <small>${d.MapTileAttribution || "© OpenStreetMap contributors"}</small>
+    </section>
     ${truth(d.Photos) ? html`<section class="hotel-gallery" aria-label="Photos de l’hôtel"><h2>Photos de l’hôtel</h2><div>${d.Photos.map((photo: ViewData) => html`<img src="/photos/${photo.ID}" alt="Photo de l’hôtel" loading="lazy" />`)}</div></section>` : html``}
     <div class="two-col">
       <section class="card">
