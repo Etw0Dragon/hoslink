@@ -70,6 +70,8 @@ function Head({ title }: { title: string }) {
       <link rel="stylesheet" href="/static/workspace.css?v=workspace-3" />
       <script src="/static/app.js?v=workspace-3" defer />
       <script type="module" src="/static/auth.js?v=workspace-3" />
+      <link rel="stylesheet" href="/static/maps.css" />
+      <script type="module" src="/static/maps.js" />
     </head>
   );
 }

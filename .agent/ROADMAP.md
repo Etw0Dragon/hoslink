@@ -179,6 +179,8 @@ Vérifications locales isolées du 15 novembre 2026 : typecheck, build npm et bu
 
 ## Annuaire cartographique et adresses OSM
 
+Correction de présentation : Leaflet est maintenant chargé par le layout professionnel commun ; le rendu serveur ajoute le doctype HTML pour éviter le mode Quirks. Les cases des catégories utilisent un format compact de 18 px et le formulaire de création corrige un chevron parasite. Typage et compilation vérifiés localement ; recette visuelle distante à confirmer après déploiement.
+
 Les catégories de prestataires sont sélectionnables ensemble ; les filtres combinent activité, station/destination, commune, adresse et zone visible sur la carte. Les résultats restent limités aux catégories compatibles avec le type d’établissement connecté. Les fiches affichent leurs adresses exactes et les résultats localisés sur une carte Leaflet/OpenStreetMap. La carte utilise uniquement les tuiles visibles, attribution incluse.
 
 La migration `004_establishment_coordinates.sql` ajoute les coordonnées facultatives et un index. À la création ou dans « Mon établissement », le responsable peut demander une recherche ponctuelle Nominatim, choisir une adresse et sa position, puis les enregistrer. Un jeton signé et à durée limitée lie le choix aux coordonnées ; une fiche existante sans position reste visible dans la liste jusqu’à sa vérification par son responsable. Les recherches de géocodage sont lancées par action utilisateur, limitées à une requête/seconde et mises en cache dans le processus. Les URL du géocodeur, des tuiles et l’attribution sont configurables. Aucun géocodage de masse n’est effectué.
