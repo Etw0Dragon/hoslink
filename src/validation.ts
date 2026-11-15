@@ -9,7 +9,7 @@ export const establishmentInput = z.object({
   category: z.enum(["hotel", "ski", "spa", "activite", "autre"]),
   station: text(120),
   city: text(120),
-  address: text(300),
+  address: text(500),
 });
 export function validPDF(b: Buffer) {
   return (

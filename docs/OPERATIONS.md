@@ -15,6 +15,9 @@ Ne jamais réutiliser la base Go. Créer une base PostgreSQL 18 vide et un rôle
 | `SMTP_URL` | URL SMTP/SMTPS avec identifiants encodés ; obligatoire en production |
 | `MAIL_FROM` | Adresse expéditrice autorisée par le service SMTP |
 | `MAIL_DIR` | Boîte locale sur disque, développement uniquement, jamais publique |
+| `CLAMAV_HOST` / `CLAMAV_PORT` | Hôte et port du scanner ; Compose configure `clamav:3310` |
+| `GEOCODER_URL` | Endpoint de recherche d’adresse ; par défaut Nominatim public |
+| `MAP_TILE_URL` / `MAP_TILE_ATTRIBUTION` | Modèle HTTPS de tuiles et attribution affichée |
 | `TEST_DATABASE_URL` | Base distincte `hoslink_ts_test` ou `hoslink_ts_test_<suffixe>`, tests uniquement |
 
 Variables obligatoires et format des URL sont validés au démarrage. Les valeurs ne sont jamais à committer. Garder `.env.node` en mode 0600. Prévoir SPF/DKIM/DMARC chez le fournisseur d’email et vérifier les liens reçus sur le domaine final. Le secret Better Auth protège aussi les secrets 2FA chiffrés : sa perte compromet la restauration des authentificateurs.
@@ -22,7 +25,7 @@ Variables obligatoires et format des URL sont validés au démarrage. Les valeur
 ## Préparer Coolify
 
 1. Importer ce dépôt comme application Docker Compose avec `compose.yaml`, sans `compose.dev.yaml` en production. Définir les secrets et `NODE_ENV=production` dans Coolify. Conserver les noms/identifiants de volumes entre déploiements. Ne rattacher aucun volume de l’ancienne application.
-2. PostgreSQL reste sur le réseau privé sans port publié. Raccorder le proxy Coolify au service `app`, port 8080, et configurer le domaine final avec TLS. Le service `migrate` doit finir avec code 0 avant `app`.
+2. PostgreSQL et ClamAV restent sans port publié. ClamAV utilise un réseau privé et une sortie dédiée pour actualiser ses signatures ; ne publiez pas son port TCP. Raccorder le proxy Coolify au service `app`, port 8080, et configurer le domaine final avec TLS. Le service `migrate` doit finir avec code 0 avant `app`.
 3. Exécuter les migrations explicitement avant chaque démarrage / livraison. En CLI : `docker compose --env-file .env.node run --rm migrate`, puis `docker compose --env-file .env.node up -d app`. Dans Coolify, vérifier le succès du service `migrate` et forcer sa recréation à chaque livraison pour ne pas réutiliser un ancien succès. Le serveur ne crée pas le schéma automatiquement.
 4. Vérifier `/healthz` (requête réelle en base), emails, cookies `Secure`, absence de ports DB publics, accès privés et réception des signaux d’arrêt. Le serveur arrête son worker et ferme le pool sur SIGTERM/SIGINT.
 5. Créer le compte administrateur, confirmer son email, puis lancer dans un conteneur de construction disposant de TypeScript : `npm run admin -- email@example.fr`, ou dans l’image de production : `node dist/admin.js email@example.fr`. Le compte ne pourra accéder aux pages privées qu’après activation confirmée du 2FA.
@@ -59,19 +62,23 @@ La CI conserve provisoirement le nom du contrôle requis `Go and PostgreSQL` pou
 
 ## Limites et ouverture
 
-Achats désactivés. Préparer exploitant, mentions légales, CGU/confidentialité, durées de conservation, procédures RGPD, modération et rattachement exceptionnel. Ajouter un contrôle antivirus des PDF avant ouverture non maîtrisée. Le limiteur Better Auth en mémoire convient à une instance pilote ; prévoir un stockage partagé avant plusieurs réplicas ou un proxy distribué, avec configuration IP fiable. Ne pas se fier à des en-têtes IP envoyés directement par le public.
+Achats désactivés. Préparer exploitant, mentions légales, CGU/confidentialité, durées de conservation, procédures RGPD, modération et rattachement exceptionnel. ClamAV contrôle les PDF avant stockage ; avant ouverture non maîtrisée, vérifier que les signatures sont chargées, qu’un fichier de test antivirus est détecté et qu’une panne du scanner bloque l’envoi. Le limiteur Better Auth en mémoire convient à une instance pilote ; prévoir un stockage partagé avant plusieurs réplicas ou un proxy distribué, avec configuration IP fiable. Ne pas se fier à des en-têtes IP envoyés directement par le public.
 
 Les migrations ne modifient jamais des migrations déjà appliquées : elles vérifient leur empreinte. Créer un nouveau fichier SQL pour chaque évolution. La réconciliation utilise un verrou transactionnel global, puis les verrous d’établissements en ordre croissant, comme les acceptations. Surveiller les erreurs de worker, l’espace DB, les échecs SMTP et l’état des sauvegardes sans journaliser les corps de requête, secrets ni liens personnels.
 
 ## Installation sur un serveur Coolify neuf
 
-Dans Coolify, valider le serveur et son proxy dans **Servers**, puis créer **Projects → New Project → Production → New Resource → Public Repository**. Utiliser `https://github.com/Etw0Dragon/hoslink`, sélectionner la branche de la migration indiquée dans la pull request (ou `main` une fois fusionnée), choisir **Docker Compose**, base `/`, fichier `/compose.yaml`. Ne pas sélectionner `compose.dev.yaml`. Charger le Compose ; les trois services `db`, `migrate` et `app` doivent apparaître.
+Dans Coolify, valider le serveur et son proxy dans **Servers**, puis créer **Projects → New Project → Production → New Resource → Public Repository**. Utiliser `https://github.com/Etw0Dragon/hoslink`, sélectionner la branche de la migration indiquée dans la pull request (ou `main` une fois fusionnée), choisir **Docker Compose**, base `/`, fichier `/compose.yaml`. Ne pas sélectionner `compose.dev.yaml`. Charger le Compose ; les quatre services `db`, `clamav`, `migrate` et `app` doivent apparaître.
 
 Dans **Environment Variables**, définir `NODE_ENV=production`, `BASE_URL=https://hoslink.tmfolio.site`, `POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET`, `SMTP_URL`, `MAIL_FROM`. Générer deux valeurs indépendantes avec `openssl rand -hex 32` pour le mot de passe PostgreSQL et le secret Better Auth. Le Compose construit `DATABASE_URL` automatiquement ; ne pas renseigner l’URL localhost de développement. Ne pas activer « Build Variable » pour les secrets d’exécution.
 
 Dans **Domains**, ajouter HTTPS, hôte `hoslink.tmfolio.site`, service **app**, port interne **8080**, chemin vide. Si la version de Coolify présente un champ unique, saisir `https://hoslink.tmfolio.site:8080` pour `app`. Ne donner aucun domaine à `db` ou `migrate`. Le port 8080 ne doit pas être ouvert publiquement.
 
 Chez le fournisseur DNS, remplacer le CNAME `hoslink` vers GitHub Pages par un enregistrement **A** `hoslink` vers l’IPv4 publique du serveur. Ne conserver un AAAA que si l’IPv6 du serveur est configurée. Les ports entrants 80/443 doivent atteindre le proxy Coolify. Déployer et consulter les logs : PostgreSQL prêt, `migrate` terminé avec code 0, `app` sain. Vérifier `https://hoslink.tmfolio.site/healthz`, puis créer et confirmer un compte avec le SMTP configuré.
+
+Le port TCP de ClamAV n’est pas publié. La connexion envoie les octets PDF par la commande INSTREAM sur le réseau privé Docker ; voir [le protocole clamd](https://docs.clamav.net/manual/Usage/ClamdProtocol.html) et [les images Docker ClamAV](https://docs.clamav.net/manual/Installing/Docker.html).
+
+La recherche d’adresse Nominatim est déclenchée explicitement par un utilisateur, limitée globalement à une requête par seconde et mise en cache dans l’instance. Ne pas ajouter d’autocomplétion ni de géocodage en masse. Le filtre cartographique s’appuie sur les coordonnées vérifiées des fiches ; ne pas lancer de géocodage systématique des anciennes adresses. Les URL et l’attribution des tuiles sont configurables pour permettre de changer de fournisseur si nécessaire. Consulter les [règles Nominatim](https://operations.osmfoundation.org/policies/nominatim/) et la [politique des tuiles OSM](https://operations.osmfoundation.org/policies/tiles/) avant une montée en charge.
 
 Documentation officielle consultée : https://coolify.io/docs/applications/configuration/general et https://coolify.io/docs/core/networking/domains.
 

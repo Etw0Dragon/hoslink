@@ -16,8 +16,10 @@ import { profiles } from "./db/schema.js";
 import { business } from "./business.js";
 import { filters, positiveId } from "./validation.js";
 import { Security, Challenge } from "./views/security.js";
+import { createGeocoder } from "./geocoding.js";
 export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
   const app = new Hono<Env>();
+  const tileOrigin = new URL(cfg.MAP_TILE_URL.replace(/\{[^}]+\}/g, "tile")).origin;
   const orm = drizzle(pool);
   const attempts = new Map<string, { at: number; count: number }>();
   app.use(
@@ -27,13 +29,13 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'"],
-        imgSrc: ["'self'", "data:"],
+        imgSrc: ["'self'", "data:", tileOrigin],
         objectSrc: ["'none'"],
         baseUri: ["'none'"],
         frameAncestors: ["'none'"],
         formAction: ["'self'"],
       },
-      referrerPolicy: "same-origin",
+      referrerPolicy: "strict-origin-when-cross-origin",
     }),
   );
   const regularBodyLimit = bodyLimit({
@@ -62,6 +64,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
   });
   app.get("/public/logo.png", serveStatic({ path: "./public/logo.png" }));
   app.get("/static/*", serveStatic({ root: "./web" }));
+  const geocoder = createGeocoder(cfg.GEOCODER_URL, cfg.BETTER_AUTH_SECRET);
   // Better Auth owns authentication, its cookies, origin/CSRF and rate limiting.
   app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
   app.use("*", async (c, next) => {
@@ -168,6 +171,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
     "/securite/appareils/revoquer",
     "/etablissement",
     "/fiche/photos",
+    "/fiche/adresse",
     "/changer",
     "/invitation",
     "/deconnexion",
@@ -179,6 +183,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
     /^\/etablissement$/,
     /^\/fiche$/,
     /^\/fiche\/photos(?:\/.*)?$/,
+    /^\/fiche\/adresse$/,
     /^\/equipe\/.*$/,
     /^\/partenariats(?:\/\d+\/[^/]+)?$/,
   ];
@@ -260,7 +265,20 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
       303,
     );
   });
-  const handler = pageHandlers(pool);
+  app.post("/api/maps/geocode", async (c) => {
+    const user = c.get("user");
+    if (!user?.Verified) return c.json({ error: "Connectez-vous avec un email vérifié." }, 403);
+    const form = await c.req.parseBody();
+    const address = String(form.address || "").trim().slice(0, 250);
+    const city = String(form.city || "").trim().slice(0, 120);
+    if (address.length < 3) return c.json({ error: "Saisissez une adresse complète." }, 400);
+    try {
+      return c.json({ places: await geocoder.search(address, city) });
+    } catch {
+      return c.json({ error: "Le service de recherche d’adresse est indisponible. Réessayez plus tard." }, 503);
+    }
+  });
+  const handler = pageHandlers(pool, cfg);
   const routes = {
     "/compte": "account",
     "/annuaire": "directory",

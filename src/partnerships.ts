@@ -2,7 +2,7 @@ import type pg from "pg";
 import { transaction, type Queryable } from "./db/index.js";
 import { HTTPException } from "hono/http-exception";
 export const reject = (
-  status: 400 | 403 | 404 | 409,
+  status: 400 | 403 | 404 | 409 | 503,
   message: string,
 ): never => {
   throw new HTTPException(status, { message });

@@ -14,6 +14,8 @@ import {
 import { pair, propose, partnershipAction, reject } from "./partnerships.js";
 import { mailer } from "./mail.js";
 import { readProfilePhoto } from "./photos.js";
+import { scanWithClamAV } from "./clamav.js";
+import { verifyGeocodedPlace } from "./geocoding.js";
 export const hash = (s: string) => createHash("sha256").update(s).digest("hex");
 export function validSIRET(s: string) {
   return (
@@ -35,6 +37,11 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
       ...form,
       siret: String(form.siret || "").replaceAll(" ", ""),
     });
+    const geocodeToken = String(form.geocode_token || ""),
+      place = geocodeToken
+        ? verifyGeocodedPlace(geocodeToken, f.address, f.city, cfg.BETTER_AUTH_SECRET)
+        : null;
+    if (geocodeToken && !place) reject(400, "L’adresse choisie sur la carte a expiré. Recherchez-la de nouveau.");
     if (cfg.NODE_ENV !== "test-prod" && !validSIRET(f.siret)) reject(400, "SIRET invalide.");
     await transaction(pool, async (tx) => {
       await tx.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [
@@ -67,7 +74,7 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
         ).rows[0];
       const est = (
         await tx.query(
-          "INSERT INTO establishments(company_id,siret,name,category,station,city,address,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id",
+          "INSERT INTO establishments(company_id,siret,name,category,station,city,address,latitude,longitude,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id",
           [
             company.id,
             f.siret,
@@ -76,6 +83,8 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
             f.station,
             f.city,
             f.address,
+            place?.latitude ?? null,
+            place?.longitude ?? null,
             text(3000, 0).parse(form.description || ""),
           ],
         )
@@ -113,6 +122,22 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
       c.get("user")!.EstID,
     ]);
     return c.redirect(`/etablissements/${c.get("user")!.EstID}`, 303);
+  });
+  app.post("/fiche/adresse", async (c) => {
+    const u = c.get("user")!,
+      form = await c.req.parseBody(),
+      address = text(500).parse(String(form.address || "")),
+      city = text(120).parse(String(form.city || "")),
+      token = String(form.geocode_token || ""),
+      place = token
+        ? verifyGeocodedPlace(token, address, city, cfg.BETTER_AUTH_SECRET)
+        : null;
+    if (token && !place) reject(400, "L’adresse choisie sur la carte a expiré. Recherchez-la de nouveau.");
+    await pool.query(
+      "UPDATE establishments SET address=$1,city=$2,latitude=CASE WHEN $3::double precision IS NOT NULL THEN $3 WHEN address=$1 AND city=$2 THEN latitude ELSE NULL END,longitude=CASE WHEN $4::double precision IS NOT NULL THEN $4 WHEN address=$1 AND city=$2 THEN longitude ELSE NULL END WHERE id=$5",
+      [address, city, place?.latitude ?? null, place?.longitude ?? null, u.EstID],
+    );
+    return c.redirect("/compte#adresse", 303);
   });
   app.post("/fiche/photos", async (c) => {
     const u = c.get("user")!,
@@ -295,6 +320,13 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
     if (f.document instanceof File && f.document.size) {
       bytes = Buffer.from(await f.document.arrayBuffer());
       if (!validPDF(bytes)) reject(400, "PDF invalide ou supérieur à 5 Mo.");
+      let clean = false;
+      try {
+        clean = await scanWithClamAV(bytes, cfg.CLAMAV_HOST, cfg.CLAMAV_PORT);
+      } catch {
+        return reject(503, "Le contrôle antivirus est indisponible. Réessayez plus tard.");
+      }
+      if (!clean) reject(400, "Le contrôle antivirus a détecté un contenu malveillant.");
       filename =
         f.document.name.replace(/[\r\n/\\"\x00-\x1f]/g, "_").slice(0, 180) ||
         filename;

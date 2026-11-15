@@ -1105,3 +1105,140 @@
 .hotel-gallery h2 {
   margin: 0;
 }
+.directory-map-panel {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.directory-map-panel .split {
+  align-items: center;
+  gap: 16px;
+}
+.directory-map-panel h2,
+.profile-location h2 {
+  margin: 0 0 6px;
+}
+.directory-map-panel p,
+.profile-location p {
+  margin: 0;
+}
+.directory-map,
+.profile-map {
+  width: 100%;
+  height: 430px;
+  min-height: 300px;
+  overflow: hidden;
+  border: 1px solid #d9d4ca;
+  border-radius: 10px;
+  background: #e9ece8;
+  z-index: 0;
+}
+.osm-mini-map {
+  width: 100%;
+  height: 240px;
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid #d9d4ca;
+  border-radius: 10px;
+  background: #e9ece8;
+}
+.map-address-search {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(130px, 1fr) auto;
+  gap: 8px 12px;
+  align-items: end;
+}
+.map-address-search label {
+  margin: 0;
+}
+.map-address-search .muted,
+.map-address-search [data-map-location-results] {
+  grid-column: 1 / -1;
+}
+.osm-geocode {
+  margin: 12px 0 18px;
+}
+.osm-geocode-results {
+  display: grid;
+  gap: 7px;
+  margin-top: 8px;
+}
+.osm-place-choice {
+  width: 100%;
+  text-align: left;
+  font-size: 13px;
+}
+.directory-categories {
+  display: grid;
+  gap: 4px;
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid #ded9d0;
+  border-radius: 8px;
+}
+.directory-categories legend {
+  padding: 0 5px;
+  font-weight: 650;
+}
+.directory-filters .directory-categories label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0;
+}
+.directory-filters .directory-categories input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+.discovery-row[data-directory-result] {
+  cursor: pointer;
+}
+.discovery-exact-address,
+.profile-exact-address {
+  color: #334b58;
+  font-weight: 600;
+}
+.profile-location {
+  margin-bottom: 26px;
+}
+.hoslink-map-pin {
+  border: 0;
+  background: transparent;
+}
+.hoslink-map-pin span {
+  display: block;
+  width: 19px;
+  height: 19px;
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: #b66d27;
+  box-shadow: 0 1px 5px #182d3780;
+  transform: rotate(-45deg);
+}
+.leaflet-container {
+  color: #183d4c;
+  font: inherit;
+}
+.leaflet-control-attribution {
+  font-size: 10px !important;
+}
+@media (max-width: 760px) {
+  .directory-map,
+  .profile-map {
+    height: 360px;
+    min-height: 280px;
+  }
+  .osm-mini-map {
+    height: 220px;
+  }
+  .map-address-search {
+    grid-template-columns: 1fr;
+  }
+  .directory-map-panel .split {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .directory-map-panel .split button {
+    width: 100%;
+  }
+}

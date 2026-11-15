@@ -12,5 +12,8 @@ dist
 *.dump.enc
 
 node_modules
+web/static/maps.js
+web/static/maps.css
+web/static/images/
 tests
 .agent

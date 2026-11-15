@@ -9,6 +9,11 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
       BASE_URL: z.string().url().default("http://localhost:8080"),
       BETTER_AUTH_SECRET: z.string().min(32),
       PORT: z.coerce.number().int().min(1).max(65535).default(8080),
+      CLAMAV_HOST: z.string().min(1).default("127.0.0.1"),
+      CLAMAV_PORT: z.coerce.number().int().min(1).max(65535).default(3310),
+      GEOCODER_URL: z.string().url().refine((url) => url.startsWith("https://"), "HTTPS requis").default("https://nominatim.openstreetmap.org/search"),
+      MAP_TILE_URL: z.string().url().refine((url) => url.startsWith("https://"), "HTTPS requis").default("https://tile.openstreetmap.org/{z}/{x}/{y}.png"),
+      MAP_TILE_ATTRIBUTION: z.string().min(1).max(300).default("© OpenStreetMap contributors"),
       SMTP_URL: z.preprocess(
         (v) => (v === "" ? undefined : v),
         z.string().url().optional(),

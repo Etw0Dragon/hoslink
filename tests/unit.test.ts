@@ -4,6 +4,7 @@ import { filters, validPDF } from "../src/validation.js";
 import { validSIRET } from "../src/business.js";
 import { renderPage } from "../src/views/pages.js";
 import { readConfig } from "../src/config.js";
+import { createGeocoder, verifyGeocodedPlace } from "../src/geocoding.js";
 test("PDF et SIRET : limites et structure", () => {
   assert(validPDF(Buffer.from("%PDF-1.7\n%%EOF")));
   assert(!validPDF(Buffer.alloc(5 * 1024 * 1024 + 1)));
@@ -23,6 +24,36 @@ test("recherche : seules les clés autorisées sont conservées", () => {
     "q=spa&station=Paris&category=hotel",
   );
   assert(!filters({ category: "invalid" }).has("category"));
+});
+test("géocodage : recherche explicite limitée, cache et jeton signé", async () => {
+  let calls = 0;
+  const geocoder = createGeocoder(
+    "https://nominatim.example.test/search",
+    "secret",
+    async (input, init) => {
+      calls++;
+      const url = new URL(String(input));
+      assert.equal(url.searchParams.get("q"), "10 rue de la Paix, Paris, France");
+      assert.equal(url.searchParams.get("countrycodes"), "fr");
+      assert.equal(url.searchParams.get("limit"), "5");
+      assert.match(String((init?.headers as Record<string, string>)["User-Agent"]), /^Hoslink\//);
+      return Response.json([{
+        display_name: "10 rue de la Paix, 75002 Paris, France",
+        lat: "48.8698",
+        lon: "2.3412",
+        address: { city: "Paris" },
+      }]);
+    },
+    () => 1_000,
+    async () => {},
+  );
+  const places = await geocoder.search("10 rue de la Paix", "Paris");
+  assert.equal(calls, 1);
+  assert.equal(places[0].latitude, 48.8698);
+  assert.deepEqual(await geocoder.search("10 rue de la Paix", "Paris"), places);
+  assert.equal(calls, 1, "La requête identique est servie depuis le cache.");
+  assert(verifyGeocodedPlace(places[0].token, places[0].address, places[0].city, "secret", 1_000));
+  assert.equal(verifyGeocodedPlace(places[0].token, "Adresse modifiée", "Paris", "secret", 1_000), null);
 });
 test("la production requiert HTTPS et SMTP", () => {
   const env = {
