@@ -17,3 +17,5 @@ web/static/maps.css
 web/static/images/
 tests
 .agent
+
+web/static/pdfjs/

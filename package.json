@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "tsx watch --env-file=.env.node src/server.ts",
-    "build": "tsc && esbuild src/browser/auth.ts --bundle --format=esm --outfile=web/static/auth.js && esbuild src/browser/maps.ts --bundle --format=esm --outfile=web/static/maps.js --loader:.png=file --asset-names=images/[name]-[hash]",
+    "build": "tsc && esbuild src/browser/auth.ts --bundle --format=esm --outfile=web/static/auth.js && esbuild src/browser/maps.ts --bundle --format=esm --outfile=web/static/maps.js --loader:.png=file --asset-names=images/[name]-[hash] && mkdir -p web/static/pdfjs && cp node_modules/pdfjs-dist/build/pdf.mjs node_modules/pdfjs-dist/build/pdf.worker.mjs web/static/pdfjs/",
     "start": "node --env-file-if-exists=.env.node dist/server.js",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "migrate": "tsx --env-file=.env.node src/db/migrate.ts",
@@ -25,6 +25,8 @@
     "hono": "4.13.18",
     "leaflet": "^1.9.4",
     "nodemailer": "^10.5.0",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.5.438",
     "pg": "^8.16.3",
     "qrcode": "^1.5.4",
     "zod": "^4.3.6"

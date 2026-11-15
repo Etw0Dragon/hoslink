@@ -20,6 +20,7 @@ COPY --from=build --chown=node:node /app/web/static/auth.js ./web/static/auth.js
 COPY --from=build --chown=node:node /app/web/static/maps.js ./web/static/maps.js
 COPY --from=build --chown=node:node /app/web/static/maps.css ./web/static/maps.css
 COPY --from=build --chown=node:node /app/web/static/images ./web/static/images
+COPY --from=build --chown=node:node /app/web/static/pdfjs ./web/static/pdfjs
 COPY --chown=node:node public/logo.png ./public/logo.png
 RUN mkdir -p var/mail && chown -R node:node var
 USER node

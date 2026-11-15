@@ -1,3 +1,4 @@
+import { documents } from "./documents.js";
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { secureHeaders } from "hono/secure-headers";
@@ -31,6 +32,8 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
         styleSrc: ["'self'"],
         imgSrc: ["'self'", "data:", tileOrigin],
         objectSrc: ["'none'"],
+        frameSrc: ["'self'", "blob:"],
+        workerSrc: ["'self'", "blob:"],
         baseUri: ["'none'"],
         frameAncestors: ["'none'"],
         formAction: ["'self'"],
@@ -346,6 +349,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
       },
     });
   });
+  documents(app, pool, cfg);
   business(app, pool, cfg);
   app.onError((err, c) => {
     if (err instanceof HTTPException) return c.text(err.message, err.status);
