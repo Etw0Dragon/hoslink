@@ -170,6 +170,17 @@ export const attachments = pgTable("attachments", {
   name: text("name").notNull(),
   data: bytea("data").notNull(),
 });
+export const establishmentPhotos = pgTable("establishment_photos", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  establishmentId: bigint("establishment_id", { mode: "number" })
+    .notNull()
+    .references(() => establishments.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  position: integer("position").notNull().default(0),
+  contentType: text("content_type").notNull(),
+  data: bytea("data").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
 export const partnerships = pgTable("partnerships", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   a: bigint("a", { mode: "number" })

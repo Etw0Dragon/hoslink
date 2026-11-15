@@ -25,6 +25,7 @@ export async function project(
           "Slots",
           "Count",
           "Version",
+          "PhotoID",
         ].includes(key)
           ? Number(row[i])
           : row[i],
@@ -74,6 +75,25 @@ export function pageHandlers(pool: pg.Pool) {
     switch (name) {
       case "account":
         data.Establishments = await project(pool, q[0], [u.ID]);
+        if (eid) {
+          const profilePhoto = (
+            await pool.query(
+              "SELECT id FROM establishment_photos WHERE establishment_id=$1 AND kind='profile'",
+              [eid],
+            )
+          ).rows[0];
+          const photos = u.EstCategory === "hotel"
+            ? (
+                await pool.query(
+                  "SELECT id FROM establishment_photos WHERE establishment_id=$1 AND kind='gallery' ORDER BY position,id",
+                  [eid],
+                )
+              ).rows.map((row) => ({ ID: Number(row.id) }))
+            : [];
+          data.PhotoID = Number(profilePhoto?.id || 0);
+          data.Photos = photos;
+          data.GalleryRemaining = Math.max(0, 8 - photos.length);
+        }
         break;
       case "directory": {
         const Query = (c.req.query("q") || "").slice(0, 160),
@@ -98,6 +118,13 @@ export function pageHandlers(pool: pg.Pool) {
             Object.entries(rows[0]).map(([k, v]) => [k, v]),
           ),
         };
+        if (rows[0].Category === "hotel")
+          data.Photos = (
+            await pool.query(
+              "SELECT id FROM establishment_photos WHERE establishment_id=$1 AND kind='gallery' ORDER BY position,id",
+              [id],
+            )
+          ).rows.map((row) => ({ ID: Number(row.id) }));
         break;
       }
       case "team":

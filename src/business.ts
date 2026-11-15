@@ -13,6 +13,7 @@ import {
 } from "./validation.js";
 import { pair, propose, partnershipAction, reject } from "./partnerships.js";
 import { mailer } from "./mail.js";
+import { readProfilePhoto } from "./photos.js";
 export const hash = (s: string) => createHash("sha256").update(s).digest("hex");
 export function validSIRET(s: string) {
   return (
@@ -112,6 +113,72 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
       c.get("user")!.EstID,
     ]);
     return c.redirect(`/etablissements/${c.get("user")!.EstID}`, 303);
+  });
+  app.post("/fiche/photos", async (c) => {
+    const u = c.get("user")!,
+      form = await c.req.parseBody();
+    const rawProfile = form.profile,
+      rawGallery = form.gallery;
+    if (
+      (Array.isArray(rawProfile) && rawProfile.length) ||
+      (Array.isArray(rawGallery) && rawGallery.length)
+    )
+      reject(400, "Envoyez une photo de profil et une photo d’hôtel au maximum par envoi.");
+    const profileFile = rawProfile instanceof File && rawProfile.size ? rawProfile : null,
+      galleryFile = rawGallery instanceof File && rawGallery.size ? rawGallery : null;
+    if (!profileFile && !galleryFile)
+      reject(400, "Sélectionnez au moins une image.");
+    const profile = profileFile ? await readProfilePhoto(profileFile) : null,
+      gallery = galleryFile ? await readProfilePhoto(galleryFile) : null;
+    if ((profileFile && !profile) || (galleryFile && !gallery))
+      reject(400, "Image invalide. Utilisez un JPEG ou PNG de 4 Mo maximum et de 6 000 pixels maximum.");
+    await transaction(pool, async (tx) => {
+      const establishment = (
+        await tx.query(
+          "SELECT category FROM establishments WHERE id=$1 FOR UPDATE",
+          [u.EstID],
+        )
+      ).rows[0];
+      if (!establishment) reject(404, "Établissement introuvable.");
+      if (gallery) {
+        if (establishment.category !== "hotel")
+          reject(400, "La galerie de photos est réservée aux hôtels.");
+        const count = Number(
+          (
+            await tx.query(
+              "SELECT count(*) FROM establishment_photos WHERE establishment_id=$1 AND kind='gallery'",
+              [u.EstID],
+            )
+          ).rows[0].count,
+        );
+        if (count >= 8)
+          reject(400, "Un hôtel peut afficher huit photos. Supprimez-en une avant d’en ajouter.");
+      }
+      if (profile) {
+        await tx.query(
+          "DELETE FROM establishment_photos WHERE establishment_id=$1 AND kind='profile'",
+          [u.EstID],
+        );
+        await tx.query(
+          "INSERT INTO establishment_photos(establishment_id,kind,content_type,data) VALUES($1,'profile',$2,$3)",
+          [u.EstID, profile.contentType, profile.data],
+        );
+      }
+      if (gallery)
+        await tx.query(
+          "INSERT INTO establishment_photos(establishment_id,kind,content_type,data) VALUES($1,'gallery',$2,$3)",
+          [u.EstID, gallery.contentType, gallery.data],
+        );
+    });
+    return c.redirect("/compte", 303);
+  });
+  app.post("/fiche/photos/:id/supprimer", async (c) => {
+    const deleted = await pool.query(
+      "DELETE FROM establishment_photos WHERE id=$1 AND establishment_id=$2 AND kind='gallery'",
+      [positiveId.parse(c.req.param("id")), c.get("user")!.EstID],
+    );
+    if (!deleted.rowCount) reject(404, "Photo introuvable.");
+    return c.redirect("/compte", 303);
   });
   app.post("/equipe/inviter", async (c) => {
     const f = await c.req.parseBody(),

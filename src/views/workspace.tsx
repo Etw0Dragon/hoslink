@@ -66,10 +66,10 @@ function Head({ title }: { title: string }) {
         type="font/ttf"
         crossorigin="anonymous"
       />
-      <link rel="stylesheet" href="/static/app.css?v=workspace-2" />
-      <link rel="stylesheet" href="/static/workspace.css?v=workspace-2" />
-      <script src="/static/app.js?v=workspace-2" defer />
-      <script type="module" src="/static/auth.js?v=workspace-2" />
+      <link rel="stylesheet" href="/static/app.css?v=workspace-3" />
+      <link rel="stylesheet" href="/static/workspace.css?v=workspace-3" />
+      <script src="/static/app.js?v=workspace-3" defer />
+      <script type="module" src="/static/auth.js?v=workspace-3" />
     </head>
   );
 }
