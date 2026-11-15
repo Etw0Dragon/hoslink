@@ -37,7 +37,7 @@ const offerLabels = {activities:"Activités et spécialités",area:"Zone d’int
 const offerFields = (offer: ViewData = {}) => html`<div class="two-col">${Object.entries(offerLabels).map(([key,label])=>html`<label>${label}<textarea name="${key}" maxlength="1000" rows="3">${offer[key] || ""}</textarea></label>`)}</div>`;
 views["notifications"] = (d,p) => html`<div class="page-heading"><div><h1>Notifications</h1><p>Vos nouveaux messages et demandes de partenariat.</p></div></div><section class="card">${(d.Notifications || []).length ? d.Notifications.map((n: ViewData)=>html`<article class="notification-item"><div><a href="${n.kind === "message" ? `/messages/${n.entity_id}` : "/partenariats"}"><strong>${n.title}</strong></a><small>${n.date} ${n.read_at ? "· Lue" : "· Non lue"}</small></div>${!n.read_at ? html`<form method="post" action="/notifications/${n.id}/lire">${views["csrf"](d,p)}<button class="secondary">Marquer comme lue</button></form>`:html``}</article>`):html`<p>Aucune notification pour le moment.</p>`}</section>`;
 views["account"] = (d, p) =>
-  html`<div class="page-heading">
+  html`<div class="establishment-editor"><div class="page-heading">
       <div>
         <h1>Mon établissement.</h1>
         <p>
@@ -57,7 +57,7 @@ views["account"] = (d, p) =>
           </div>`
         : html` ${
               truth(d.User.EstID)
-                ? html`<div class="card">
+                ? html`<div class="card establishment-overview">
                     <div class="split">
                       <h2>${d.User.EstName}</h2>
                       <span class="badge">${status(d.User.Status)}</span>
@@ -67,25 +67,24 @@ views["account"] = (d, p) =>
                 : html``
             }
             ${truth(d.User.EstID && d.User.Role === "owner")
-              ? html`<section class="card photo-manager">
-                  <h2>Photos de votre établissement</h2>
-                  <p>Photo de profil pour votre fiche dans l’annuaire. JPEG ou PNG, 4 Mo maximum par image.</p>
-                  ${truth(d.PhotoID) ? html`<img class="managed-profile-photo" src="/photos/${d.PhotoID}" alt="Photo de profil actuelle de ${d.User.EstName}" />` : html``}
+              ? html`<div class="editor-main-grid"><section id="informations" class="card establishment-information"><span class="editor-eyebrow">VOTRE IDENTITÉ</span><h2>Présentez votre établissement.</h2><p>Les informations que vos futurs partenaires découvriront sur votre fiche.</p><form method="post" action="/fiche">${views["csrf"](d,p)}<input type="hidden" name="return_to" value="account" /><label>Nom de l’établissement<input name="name" required maxlength="160" value="${d.EstablishmentName || d.User.EstName}" /></label><label>Destination ou secteur<input name="station" required maxlength="100" value="${d.Station || ""}" /></label><label>Présentation<textarea name="description" maxlength="3000" rows="8" placeholder="Votre établissement, votre équipe, ce qui vous distingue…">${d.Description || ""}</textarea></label><button>Enregistrer les informations</button></form></section><section class="card photo-manager">
+                  <span class="editor-eyebrow">VOTRE VITRINE</span><h2>Donnez envie de vous rencontrer.</h2>
+                  <p>Une belle photo rend votre établissement plus facile à reconnaître. JPEG ou PNG · 4 Mo maximum.</p>
                   <form action="/fiche/photos" method="post" enctype="multipart/form-data">
                     ${views["csrf"](d, p)}
-                    <label>Photo de profil<input type="file" name="profile" accept="image/jpeg,image/png" /></label>
+                    <div class="photo-upload-grid"><div class="photo-upload-card"><div class="photo-preview" data-upload-preview="profile">${truth(d.PhotoID) ? html`<img src="/photos/${d.PhotoID}" alt="Photo de profil de ${d.User.EstName}" />` : html`<span aria-hidden="true">▧</span><small>Votre photo de couverture</small>`}</div><h3>Photo de profil</h3><p>Visible dans l’annuaire et sur votre fiche.</p><label class="upload-picker"><span>Choisir une photo</span><input aria-label="Choisir une photo de profil" type="file" name="profile" accept="image/jpeg,image/png" data-photo-picker="profile" /></label><small class="upload-filename" data-upload-name="profile" aria-live="polite">Aucune nouvelle photo sélectionnée</small></div>
                     ${truth(d.User.EstCategory === "hotel")
-                      ? html`<label>Photos de l’hôtel (${d.GalleryRemaining} place(s) restante(s))<input type="file" name="gallery" accept="image/jpeg,image/png" ${truth(d.GalleryRemaining <= 0) ? html`disabled` : html``} /></label><small>Jusqu’à huit photos au total. Chaque envoi ajoute une photo à la galerie.</small>`
+                      ? html`<div class="photo-upload-card"><div class="photo-preview" data-upload-preview="gallery">${d.Photos?.length ? html`<img src="/photos/${d.Photos[d.Photos.length-1].ID}" alt="Dernière photo ajoutée à la galerie" />` : html`<span aria-hidden="true">＋</span><small>Faites découvrir vos espaces</small>`}</div><h3>Galerie de l’hôtel</h3><p>${8 - d.GalleryRemaining} photo(s) sur 8 · ${d.GalleryRemaining} place(s) disponible(s)</p><label class="upload-picker"><span>${d.GalleryRemaining <= 0 ? "Galerie complète" : "Ajouter une photo"}</span><input aria-label="Ajouter une photo à la galerie" type="file" name="gallery" data-photo-picker="gallery" accept="image/jpeg,image/png" ${truth(d.GalleryRemaining <= 0) ? html`disabled` : html``} /></label><small class="upload-filename" data-upload-name="gallery" aria-live="polite">Une photo par envoi</small></div>`
                       : html``}
-                    <button>Enregistrer les photos</button>
+                    </div><div class="editor-save"><small>Vos modifications seront visibles après enregistrement.</small><button>Enregistrer les photos</button></div>
                   </form>
-                  ${truth(d.Photos) ? html`<div class="managed-gallery">${d.Photos.map((photo: ViewData) => html`<div><img src="/photos/${photo.ID}" alt="Photo de l’hôtel" /><form action="/fiche/photos/${photo.ID}/supprimer" method="post" data-confirm="Supprimer cette photo de l’hôtel ?">${views["csrf"](d, p)}<button class="secondary">Supprimer</button></form></div>`)}</div>` : html``}
-                </section>`
+                  ${truth(d.Photos) ? html`<h3 class="saved-gallery-title">Photos enregistrées</h3><div class="managed-gallery">${d.Photos.map((photo: ViewData) => html`<div><img src="/photos/${photo.ID}" alt="Photo de l’hôtel" /><form action="/fiche/photos/${photo.ID}/supprimer" method="post" data-confirm="Supprimer cette photo de l’hôtel ?">${views["csrf"](d, p)}<button class="secondary">Supprimer</button></form></div>`)}</div>` : html``}
+                </section></div>`
               : html``}
             ${truth(d.User.EstID && d.User.Role === "owner" && d.User.EstCategory !== "hotel") ? html`<section id="offre" class="card"><h2>Votre offre professionnelle</h2><p>Ces informations apparaissent sur votre fiche et permettent de vous trouver dans la recherche.</p><form method="post" action="/fiche/offre">${views["csrf"](d,p)}${offerFields(d.ProviderOffer)}<button>Enregistrer mon offre</button></form></section>` : html``}
             ${truth(d.User.EstID && d.User.Role === "owner")
               ? html`<section id="adresse" class="card address-manager">
-                  <h2>Adresse et localisation</h2>
+                  <span class="editor-eyebrow">SUR LA CARTE</span><h2>Votre adresse, au bon endroit.</h2>
                   <p>Choisissez le résultat correspondant à votre établissement pour afficher son adresse exacte et le placer sur la carte. Les adresses sont recherchées sur OpenStreetMap.</p>
                   <form action="/fiche/adresse" method="post" class="osm-geocode-form">
                     ${views["csrf"](d, p)}
@@ -98,7 +97,7 @@ views["account"] = (d, p) =>
               : html``}
             ${
               truth(d.Establishments)
-                ? html`<section class="card">
+                ? html`<section class="card establishment-switcher">
                     <h2>Mes établissements</h2>
                     <form action="/changer" method="post" class="inline-form">
                       ${views["csrf"](d, p)}<label
@@ -171,7 +170,7 @@ views["account"] = (d, p) =>
                 ><button>Soumettre à validation ↗</button>
               </form>
             </details>`
-    }`;
+    }</div>`;
 views["admin"] = (d, p) =>
   html`<h1>Validation des professionnels.</h1>
     <p>

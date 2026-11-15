@@ -83,7 +83,7 @@ export function pageHandlers(pool: pg.Pool, cfg: Config) {
         if (eid) {
           const establishment = (
             await pool.query(
-              "SELECT address,city,latitude,longitude,provider_offer FROM establishments WHERE id=$1",
+              "SELECT name,description,station,address,city,latitude,longitude,provider_offer FROM establishments WHERE id=$1",
               [eid],
             )
           ).rows[0];
@@ -104,6 +104,9 @@ export function pageHandlers(pool: pg.Pool, cfg: Config) {
           data.PhotoID = Number(profilePhoto?.id || 0);
           data.Photos = photos;
           data.GalleryRemaining = Math.max(0, 8 - photos.length);
+          data.EstablishmentName = establishment.name;
+          data.Description = establishment.description;
+          data.Station = establishment.station;
           data.ProviderOffer = establishment.provider_offer;
           data.Address = establishment.address;
           data.City = establishment.city;

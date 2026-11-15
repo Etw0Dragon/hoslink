@@ -120,11 +120,11 @@ export function business(app: Hono<Env>, pool: pg.Pool, cfg: Config) {
   });
   app.post("/fiche", async (c) => {
     const f = await c.req.parseBody();
-    await pool.query("UPDATE establishments SET description=$1 WHERE id=$2", [
-      text(3000, 0).parse(f.description || ""),
-      c.get("user")!.EstID,
-    ]);
-    return c.redirect(`/etablissements/${c.get("user")!.EstID}`, 303);
+    const u=c.get("user")!;
+    const name=f.name === undefined ? null : text(160).parse(f.name);
+    const station=f.station === undefined ? null : text(100).parse(f.station);
+    await pool.query("UPDATE establishments SET description=$1,name=COALESCE($3,name),station=COALESCE($4,station) WHERE id=$2", [text(3000,0).parse(f.description || ""),u.EstID,name,station]);
+    return c.redirect(f.return_to === "account" ? "/compte#informations" : `/etablissements/${u.EstID}`,303);
   });
   app.post("/fiche/offre", async c => {
     const u=c.get("user")!;
