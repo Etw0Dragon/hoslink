@@ -1222,6 +1222,71 @@
 .leaflet-control-attribution {
   font-size: 10px !important;
 }
+/* Annuaire : les fiches restent au centre, avec la mini-carte à droite. */
+.discovery-content {
+  grid-template-columns: 220px minmax(0, 1fr) minmax(300px, 340px);
+  gap: 22px;
+  align-items: start;
+}
+.discovery-map-column {
+  min-width: 0;
+}
+.discovery-map-column .directory-map-panel {
+  position: sticky;
+  top: 18px;
+  padding: 16px;
+}
+.discovery-map-column .directory-map {
+  height: 320px;
+  min-height: 260px;
+}
+.discovery-map-column .directory-map-panel .split {
+  align-items: flex-start;
+  flex-direction: column;
+}
+.discovery-map-column .directory-map-panel .split button {
+  width: 100%;
+}
+.discovery-map-column .map-address-search {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.discovery-map-column .map-address-search .muted,
+.discovery-map-column .map-address-search [data-map-location-results] {
+  grid-column: auto;
+}
+.discovery-map-column .directory-map-panel > small {
+  line-height: 1.6;
+}
+@media (max-width: 1180px) {
+  .discovery-content {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+  .discovery-map-column {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .discovery-map-column .directory-map-panel {
+    position: static;
+  }
+  .discovery-map-column .directory-map {
+    height: 360px;
+  }
+}
+@media (max-width: 760px) {
+  .discovery-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .discovery-filters,
+  .discovery-results,
+  .discovery-map-column {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .discovery-map-column .directory-map {
+    height: 320px;
+  }
+}
 @media (max-width: 760px) {
   .directory-map,
   .profile-map {

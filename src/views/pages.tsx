@@ -556,6 +556,16 @@ views["directory"] = (d, p) => {
       </aside>
       <section class="discovery-results">
         <div class="results-heading"><h2>${d.Items?.length ?? 0} résultat${truth((d.Items?.length ?? 0) !== 1) ? html`s` : html``}</h2><span>Jusqu’à 200 fiches</span></div>
+        <div class="discovery-list">
+          ${d.Items?.length ? d.Items.map((row: ViewData) => html`
+            <article class="discovery-row" data-directory-result data-latitude="${row.Latitude ?? ""}" data-longitude="${row.Longitude ?? ""}">
+              <div class="discovery-image"><img src="${truth(row.PhotoID) ? `/photos/${row.PhotoID}` : views["activity-image"](row.Category, p)}" alt="${truth(row.PhotoID) ? `Photo de ${row.Name}` : ""}" loading="lazy" />${truth(row.PhotoID) ? html`` : html`<span>Illustration d’activité</span>`}</div>
+              <div class="discovery-row-body"><h3><a href="/etablissements/${row.ID}">${row.Name}</a></h3><span class="discovery-category">${category(row.Category)}</span><p class="discovery-location">${row.Station}${truth(row.Station && row.City) ? html` · ` : html``}${row.City}</p><p class="discovery-exact-address">${row.Address}</p><p>${row.Description || "Présentation à compléter."}</p><a class="button secondary" href="/etablissements/${row.ID}">Voir la fiche et contacter</a></div>
+            </article>
+          `) : html`<div class="empty"><h2>Aucun résultat pour cette recherche.</h2><p>Modifiez les filtres pour découvrir d’autres professionnels.</p><a href="/annuaire" class="button secondary">Réinitialiser les filtres</a></div>`}
+        </div>
+      </section>
+      <aside class="discovery-map-column">
         <section class="directory-map-panel card">
           <div class="split"><div><h2>Explorer sur la carte</h2><p data-map-status>${mapItems.length} adresse${mapItems.length === 1 ? "" : "s"} localisée${mapItems.length === 1 ? "" : "s"} sur ${d.Items?.length ?? 0} résultat${d.Items?.length === 1 ? "" : "s"}.</p></div><button type="button" class="secondary" data-map-search-area>Rechercher dans cette zone</button></div>
           <div class="map-address-search" data-osm-map-search>
@@ -570,15 +580,7 @@ views["directory"] = (d, p) => {
           ${unlocated ? html`<p class="muted">${unlocated} fiche${unlocated === 1 ? "" : "s"} n’a/ont pas encore de position vérifiée et reste${unlocated === 1 ? "" : "nt"} visible${unlocated === 1 ? "" : "s"} dans la liste.</p>` : html``}
           <small>${d.MapTileAttribution} · Données de géocodage © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer">Signaler un problème de carte</a></small>
         </section>
-        <div class="discovery-list">
-          ${d.Items?.length ? d.Items.map((row: ViewData) => html`
-            <article class="discovery-row" data-directory-result data-latitude="${row.Latitude ?? ""}" data-longitude="${row.Longitude ?? ""}">
-              <div class="discovery-image"><img src="${truth(row.PhotoID) ? `/photos/${row.PhotoID}` : views["activity-image"](row.Category, p)}" alt="${truth(row.PhotoID) ? `Photo de ${row.Name}` : ""}" loading="lazy" />${truth(row.PhotoID) ? html`` : html`<span>Illustration d’activité</span>`}</div>
-              <div class="discovery-row-body"><h3><a href="/etablissements/${row.ID}">${row.Name}</a></h3><span class="discovery-category">${category(row.Category)}</span><p class="discovery-location">${row.Station}${truth(row.Station && row.City) ? html` · ` : html``}${row.City}</p><p class="discovery-exact-address">${row.Address}</p><p>${row.Description || "Présentation à compléter."}</p><a class="button secondary" href="/etablissements/${row.ID}">Voir la fiche et contacter</a></div>
-            </article>
-          `) : html`<div class="empty"><h2>Aucun résultat pour cette recherche.</h2><p>Modifiez les filtres pour découvrir d’autres professionnels.</p><a href="/annuaire" class="button secondary">Réinitialiser les filtres</a></div>`}
-        </div>
-      </section>
+      </aside>
     </div>`;
 };
 views["history"] = (d, p) =>
