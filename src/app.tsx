@@ -1,4 +1,5 @@
 import { documents } from "./documents.js";
+import { stripeClient, verifyStripeEvent, processStripeEvent, checkout, portal } from "./billing.js";
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { secureHeaders } from "hono/secure-headers";
@@ -20,6 +21,7 @@ import { Security, Challenge } from "./views/security.js";
 import { createGeocoder } from "./geocoding.js";
 export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
   const app = new Hono<Env>();
+  const stripe = stripeClient(cfg);
   const tileOrigin = new URL(cfg.MAP_TILE_URL.replace(/\{[^}]+\}/g, "tile")).origin;
   const orm = drizzle(pool);
   const attempts = new Map<string, { at: number; count: number }>();
@@ -68,6 +70,18 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
   app.get("/public/logo.png", serveStatic({ path: "./public/logo.png" }));
   app.get("/static/*", serveStatic({ root: "./web" }));
   const geocoder = createGeocoder(cfg.GEOCODER_URL, cfg.BETTER_AUTH_SECRET);
+  // Stripe signs the raw body; this endpoint must precede session/CSRF middleware.
+  app.post("/api/stripe/webhook", async c => {
+    if (!stripe || !cfg.STRIPE_WEBHOOK_SECRET) return c.text("Stripe désactivé", 503);
+    const signature = c.req.header("stripe-signature");
+    if (!signature) return c.text("Signature absente", 400);
+    let event;
+    try { event = verifyStripeEvent(Buffer.from(await c.req.arrayBuffer()), signature, cfg.STRIPE_WEBHOOK_SECRET); }
+    catch { return c.text("Signature invalide", 400); }
+    try { await processStripeEvent(pool, stripe, cfg, event); }
+    catch (err) { console.error("stripe webhook processing failed", { type: (err as Error).name }); return c.text("Traitement temporairement indisponible", 500); }
+    return c.json({ received: true });
+  });
   // Better Auth owns authentication, its cookies, origin/CSRF and rate limiting.
   app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
   app.use("*", async (c, next) => {
@@ -200,6 +214,7 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
     /^\/fiche\/adresse$/,
     /^\/equipe\/.*$/,
     /^\/partenariats(?:\/\d+\/[^/]+)?$/,
+    /^\/facturation\/(?:checkout|portail)$/,
   ];
   app.use("*", async (c, next) => {
     const path = c.req.path,
@@ -308,6 +323,18 @@ export function createApp(pool: pg.Pool, auth: Auth, cfg: Config) {
     } catch {
       return c.json({ error: "Le service de recherche d’adresse est indisponible. Réessayez plus tard." }, 503);
     }
+  });
+  app.post("/facturation/checkout", async c => {
+    if (!stripe) return c.text("Paiement de test indisponible.", 503);
+    const form = await c.req.parseBody();
+    const kind = String(form.kind);
+    if (kind !== "slot" && kind !== "subscription") return c.text("Offre inconnue.", 400);
+    const user = c.get("user")!;
+    return c.redirect(await checkout(pool, stripe, cfg, user.EstID, user.Email, kind), 303);
+  });
+  app.post("/facturation/portail", async c => {
+    if (!stripe) return c.text("Paiement de test indisponible.", 503);
+    return c.redirect(await portal(pool, stripe, cfg, c.get("user")!.EstID), 303);
   });
   const handler = pageHandlers(pool, cfg);
   const routes = {

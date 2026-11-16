@@ -167,3 +167,9 @@ Avant utilisation réelle : vérifier SMTP, faire valider les trames, les mentio
 ## Refonte de l’atelier et intégration à main — 16 novembre 2026
 
 Le porteur demande une refonte des interfaces Devis et Contrats à partir de sa capture de l’atelier : conserver l’identité bleu nuit/or, améliorer l’organisation des champs, l’aperçu et les actions. Cette évolution porte sur l’interface ; les règles de confidentialité, de sauvegarde, de versionnement et de signature validées sont conservées. Il demande également d’intégrer `feat/typescript-hono-auth` à `main`, en conservant le processus de PR et de CI du dépôt.
+
+## Paiements Stripe — décisions du 16 novembre 2026
+
+Le porteur choisit Stripe en sandbox et autorise des montants de test provisoires. En cas d’échec du renouvellement, l’accès illimité prend fin à l’expiration de la période déjà payée. Les tarifs réels, la TVA, les remboursements et les autres modalités d’impayés restent à décider avant toute vente réelle ; aucune ouverture de production n’est autorisée par ces choix.
+
+Pour la sandbox uniquement, le porteur accepte une catégorie fiscale de logiciel en ligne professionnel et demande une simulation simple de la TVA. Le taux fixe provisoire de 20 % et les prix de test HT ne constituent pas une décision fiscale ni commerciale pour la production.

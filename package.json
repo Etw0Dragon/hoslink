@@ -15,7 +15,8 @@
     "db:reset": "tsx --env-file-if-exists=.env.node src/reset-db.ts",
     "seed:demo": "tsx --env-file-if-exists=.env.node src/seed-demo.ts",
     "test": "tsx --test tests/*.test.ts",
-    "test:integration": "tsx --test tests/integration.test.ts"
+    "test:integration": "tsx --test tests/integration.test.ts",
+    "stripe:setup-test": "tsx --env-file-if-exists=.env.node src/stripe-setup.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.6.0",
@@ -29,6 +30,7 @@
     "pdfjs-dist": "^6.5.438",
     "pg": "^8.16.3",
     "qrcode": "^1.5.4",
+    "stripe": "^23.1.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

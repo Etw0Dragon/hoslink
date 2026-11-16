@@ -20,8 +20,16 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
       ),
       MAIL_FROM: z.string().email().default("noreply@hoslink.tmfolio.site"),
       MAIL_DIR: z.string().default("var/mail"),
+      STRIPE_SECRET_KEY: z.preprocess(v => v || undefined, z.string().regex(/^sk_test_/).optional()),
+      STRIPE_WEBHOOK_SECRET: z.preprocess(v => v || undefined, z.string().regex(/^whsec_/).optional()),
+      STRIPE_SLOT_PRICE_ID: z.preprocess(v => v || undefined, z.string().regex(/^price_/).optional()),
+      STRIPE_SUBSCRIPTION_PRICE_ID: z.preprocess(v => v || undefined, z.string().regex(/^price_/).optional()),
+      STRIPE_TEST_TAX_RATE_ID: z.preprocess(v => v || undefined, z.string().regex(/^txr_/).optional()),
+      STRIPE_PORTAL_CONFIGURATION_ID: z.preprocess(v => v || undefined, z.string().regex(/^bpc_/).optional()),
     })
     .parse(env);
+  const stripeValues = [c.STRIPE_SECRET_KEY, c.STRIPE_WEBHOOK_SECRET, c.STRIPE_SLOT_PRICE_ID, c.STRIPE_SUBSCRIPTION_PRICE_ID, c.STRIPE_TEST_TAX_RATE_ID, c.STRIPE_PORTAL_CONFIGURATION_ID];
+  if (stripeValues.some(Boolean) && !stripeValues.every(Boolean)) throw new Error("Configuration Stripe sandbox incomplète");
   const base = new URL(c.BASE_URL);
   if (
     !["http:", "https:"].includes(base.protocol) ||
