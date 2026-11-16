@@ -163,3 +163,7 @@ Les contrats de partenariat utilisent une signature interne avec preuve d’acce
 Les deux signatures déclenchent une vérification transactionnelle des capacités et de l’état des établissements. Sans place, le contrat reste signé avec activation Hoslink en attente, relançable après libération de capacité. Le parcours historique d’acceptation/modification/réactivation ne peut contourner les versions contractuelles ; les partenariats historiques sans contrat gardent leur parcours. Notifications et file email existantes réutilisées, sans contenu confidentiel dans les notifications.
 
 Avant utilisation réelle : vérifier SMTP, faire valider les trames, les mentions de consentement et la durée de conservation des preuves. Ces prérequis ne sont pas déclarés résolus par les essais locaux ; aucune ouverture de production ni signature externe payante n’est autorisée par ce lot. La recette et le déploiement sont suivis dans ROADMAP.md et docs/OPERATIONS.md.
+
+## Refonte de l’atelier et intégration à main — 16 novembre 2026
+
+Le porteur demande une refonte des interfaces Devis et Contrats à partir de sa capture de l’atelier : conserver l’identité bleu nuit/or, améliorer l’organisation des champs, l’aperçu et les actions. Cette évolution porte sur l’interface ; les règles de confidentialité, de sauvegarde, de versionnement et de signature validées sont conservées. Il demande également d’intégrer `feat/typescript-hono-auth` à `main`, en conservant le processus de PR et de CI du dépôt.

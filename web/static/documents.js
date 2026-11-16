@@ -101,6 +101,8 @@ if (editor) {
       target.replaceChildren();
       data.lines.forEach((line, i) => {
         const row = el("fieldset");
+        row.className = "document-line";
+        row.append(el("legend", `Prestation ${i + 1}`));
         [
           ["label", "Prestation", "text"],
           ["quantity", "Quantité", "number"],
@@ -126,6 +128,8 @@ if (editor) {
         });
         const remove = el("button", "Supprimer");
         remove.type = "button";
+        remove.className = "secondary document-remove";
+        remove.setAttribute("aria-label", `Supprimer la prestation ${i + 1}`);
         remove.onclick = () => {
           data.lines.splice(i, 1);
           rows();
@@ -191,49 +195,141 @@ if (editor) {
     if (editor.dataset.original !== "true") {
       const paper = el("article");
       paper.className = "document-paper " + data.layout;
-      paper.append(
+      const money = (cents) =>
+        new Intl.NumberFormat("fr-FR", {
+          style: "currency",
+          currency: "EUR",
+        }).format(cents / 100);
+      const date = (value) =>
+        /^\d{4}-\d{2}-\d{2}$/.test(value || "")
+          ? value.split("-").reverse().join("/")
+          : value;
+      const heading = el("header");
+      heading.className = "paper-heading";
+      const brand = el("span", "HOSLINK");
+      brand.className = "paper-brand";
+      heading.append(
+        brand,
         el(
           "h2",
           editor.dataset.kind === "contract"
-            ? "CONTRAT DE PARTENARIAT"
-            : "DEVIS",
+            ? "Contrat de partenariat"
+            : "Devis",
         ),
-        el("p", data.reference + " · " + data.date),
-        el("p", data.issuer),
-        el("p", data.recipient),
       );
+      const meta = el("div");
+      meta.className = "paper-meta";
+      meta.append(
+        el("span", data.reference || "Référence à renseigner"),
+        el("span", date(data.date) || "Date à renseigner"),
+      );
+      heading.append(meta);
+      paper.append(heading);
+      const parties = el("div");
+      parties.className = "paper-parties";
+      for (const [label, value] of [
+        ["ÉMETTEUR", data.issuer],
+        ["DESTINATAIRE", data.recipient],
+      ]) {
+        const party = el("div");
+        party.append(el("small", label), el("p", value || "À renseigner"));
+        parties.append(party);
+      }
+      paper.append(parties);
       if (editor.dataset.kind === "contract") {
-        for (const key of [
-          "benefits",
-          "commitments",
-          "start",
-          "end",
-          "renewal",
-        ])
-          paper.append(el("p", data[key]));
-        paper.append(
-          el("p", "Signature émetteur : __________________"),
-          el("p", "Signature destinataire : __________________"),
-        );
-      } else {
-        let net = 0,
-          tax = 0;
-        for (const l of data.lines) {
-          const amount = Math.round(l.quantity * l.unitCents);
-          net += amount;
-          tax += Math.round((amount * l.vat) / 100);
-          paper.append(
+        for (const [key, label] of [
+          ["benefits", "Avantages clients"],
+          ["commitments", "Engagements"],
+          ["start", "Début du partenariat"],
+          ["end", "Fin du partenariat"],
+          ["renewal", "Renouvellement"],
+        ]) {
+          if (!data[key]) continue;
+          const section = el("section");
+          section.append(
+            el("h3", label),
             el(
               "p",
-              `${l.label} · ${l.quantity} × ${(l.unitCents / 100).toFixed(2)} € HT · TVA ${l.vat}%`,
+              ["start", "end"].includes(key) ? date(data[key]) : data[key],
             ),
           );
+          paper.append(section);
         }
-        const text = `HT ${(net / 100).toFixed(2)} € · TVA ${(tax / 100).toFixed(2)} € · TTC ${((net + tax) / 100).toFixed(2)} €`;
-        paper.append(el("strong", text));
-        editor.querySelector("[data-totals]").textContent = text;
+      } else {
+        const table = el("table");
+        table.className = "paper-lines";
+        const caption = el("caption", "Détail des prestations");
+        const head = el("thead"),
+          header = el("tr");
+        for (const label of ["Prestation", "Qté", "PU HT", "TVA", "Total HT"]) {
+          const cell = el("th", label);
+          cell.scope = "col";
+          header.append(cell);
+        }
+        head.append(header);
+        const body = el("tbody");
+        let net = 0,
+          tax = 0;
+        for (const line of data.lines) {
+          const amount = Math.round(line.quantity * line.unitCents);
+          net += amount;
+          tax += Math.round((amount * line.vat) / 100);
+          const row = el("tr");
+          for (const text of [
+            line.label,
+            String(line.quantity),
+            money(line.unitCents),
+            `${line.vat} %`,
+            money(amount),
+          ])
+            row.append(el("td", text));
+          body.append(row);
+        }
+        table.append(caption, head, body);
+        paper.append(table);
+        if (!data.lines.length)
+          paper.append(
+            el("p", "Ajoutez vos prestations pour compléter ce devis."),
+          );
+        const summary = el("dl");
+        summary.className = "paper-totals";
+        for (const [label, value] of [
+          ["Total HT", net],
+          ["TVA", tax],
+          ["Total TTC", net + tax],
+        ]) {
+          const row = el("div");
+          row.append(el("dt", label), el("dd", money(value)));
+          summary.append(row);
+        }
+        paper.append(summary);
+        editor.querySelector("[data-totals]").textContent =
+          `Total HT : ${money(net)} · TVA : ${money(tax)} · TTC : ${money(net + tax)}`;
+        if (data.validUntil)
+          paper.append(
+            el("p", `Devis valable jusqu’au ${date(data.validUntil)}`),
+          );
       }
-      paper.append(el("p", data.conditions));
+      if (data.conditions) {
+        const section = el("section");
+        section.className = "paper-conditions";
+        section.append(
+          el("h3", "Conditions complémentaires"),
+          el("p", data.conditions),
+        );
+        paper.append(section);
+      }
+      if (editor.dataset.kind === "contract") {
+        const signatures = el("div");
+        signatures.className = "paper-signatures";
+        signatures.append(
+          el("div", "Signature de l’émetteur"),
+          el("div", "Signature du destinataire"),
+        );
+        paper.append(signatures);
+      }
+      const footer = el("footer", "Brouillon · Document non envoyé");
+      paper.append(footer);
       target.append(paper);
     }
     if (sourcePDF) {
