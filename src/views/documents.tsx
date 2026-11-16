@@ -1,4 +1,4 @@
-import { Workspace } from "./workspace.js";
+import { Workspace, Icon } from "./workspace.js";
 import type { Identity } from "../types.js";
 import { totals } from "../document-data.js";
 type Row = Record<string, any>;
@@ -52,6 +52,54 @@ export function DocumentsView({
     ["renewal", "Renouvellement"],
     ["conditions", "Conditions complémentaires"],
   ] as const;
+  const isQuote = (doc?.kind || kind) === "quote";
+  const collection = isQuote ? "/devis" : "/contrats";
+  const visibleItems = items.filter((d) => d.kind === kind);
+  const visibleTemplates = templates.filter((t) => t.kind === kind);
+  const renderField = ([key, label]: (typeof fields)[number]) => (
+    <label
+      class={
+        [
+          "issuer",
+          "recipient",
+          "conditions",
+          "benefits",
+          "commitments",
+          "renewal",
+        ].includes(key)
+          ? "document-wide"
+          : ""
+      }
+    >
+      {label}
+      {[
+        "issuer",
+        "recipient",
+        "conditions",
+        "benefits",
+        "commitments",
+        "renewal",
+      ].includes(key) ? (
+        <textarea
+          data-field={key}
+          rows={key === "conditions" ? 4 : 3}
+          maxlength={10000}
+        >
+          {doc?.draft[key]}
+        </textarea>
+      ) : (
+        <input
+          data-field={key}
+          type={
+            ["date", "validUntil", "start", "end"].includes(key)
+              ? "date"
+              : "text"
+          }
+          value={doc?.draft[key]}
+        />
+      )}
+    </label>
+  );
   return (
     <Workspace
       title={doc?.title || (kind === "quote" ? "Devis" : "Contrats")}
@@ -61,23 +109,56 @@ export function DocumentsView({
       user={u}
       csrf={csrf}
     >
-      <script type="module" src="/static/documents.js" />
-      <div class="page-heading">
+      <link rel="stylesheet" href="/static/documents.css?v=atelier-2" />
+      <script type="module" src="/static/documents.js?v=atelier-2" />
+      <div class="page-heading document-heading">
         <div>
+          {doc ? (
+            <a class="document-back" href={collection}>
+              ← Tous les {isQuote ? "devis" : "contrats"}
+            </a>
+          ) : (
+            <span class="document-eyebrow">VOTRE ESPACE DOCUMENTS</span>
+          )}
           <h1>
             {doc?.title || (kind === "quote" ? "Vos devis" : "Vos contrats")}
           </h1>
           <p>
-            Documents privés entre professionnels. Signature interne avec preuve
-            d’acceptation.
+            {doc
+              ? "Préparez votre document, vérifiez-le puis partagez-le avec votre partenaire."
+              : isQuote
+                ? "De la première proposition à l’accord de votre partenaire."
+                : "Posez les bases de vos partenariats et retrouvez vos signatures."}
           </p>
         </div>
+        {editable && (
+          <div class="document-heading-actions">
+            <span class="badge document-private">
+              <Icon name="security" /> Brouillon privé
+            </span>
+            <a class="button" href="#document-share">
+              {isQuote ? "Partager le devis" : "Faire signer le contrat"}{" "}
+              <Icon name="arrow" />
+            </a>
+          </div>
+        )}
       </div>
       {!doc ? (
         <>
           {owner && (
-            <section class="card">
-              <h2>Créer un document</h2>
+            <section class="card document-create">
+              <div>
+                <span class="document-eyebrow">NOUVEAU DOCUMENT</span>
+                <h2>
+                  {isQuote
+                    ? "Une proposition à partager ?"
+                    : "Un partenariat à concrétiser ?"}
+                </h2>
+                <p>
+                  Choisissez votre partenaire et partez d’une trame ou d’un
+                  modèle de votre établissement.
+                </p>
+              </div>
               <form method="post" action="/atelier/creer">
                 {token}
                 <input type="hidden" name="kind" value={kind} />
@@ -107,21 +188,58 @@ export function DocumentsView({
               </form>
             </section>
           )}
-          <section class="card">
-            <h2>Documents</h2>
-            {items
-              .filter((d) => d.kind === kind)
-              .map((d) => (
+          <section class="card document-library">
+            <div class="section-heading">
+              <h2>{isQuote ? "Tous vos devis" : "Tous vos contrats"}</h2>
+              <span class="badge">
+                {visibleItems.length} document
+                {visibleItems.length > 1 ? "s" : ""}
+              </span>
+            </div>
+            {visibleItems.length ? (
+              visibleItems.map((d) => (
+                <a class="document-list-row" href={`/atelier/${d.id}`}>
+                  <span class="document-list-icon">
+                    <Icon name="offers" />
+                  </span>
+                  <span>
+                    <strong>{d.title}</strong>
+                    <small>
+                      {d.current_version
+                        ? `Version ${d.current_version} partagée`
+                        : "Brouillon privé"}
+                    </small>
+                  </span>
+                  <span aria-hidden="true">→</span>
+                </a>
+              ))
+            ) : (
+              <div class="empty">
+                <h3>
+                  {isQuote
+                    ? "Votre prochain devis commence ici"
+                    : "Vos partenariats prennent forme ici"}
+                </h3>
                 <p>
-                  <a href={`/atelier/${d.id}`}>{d.title}</a> ·{" "}
-                  {d.current_version
-                    ? `Version ${d.current_version}`
-                    : "Brouillon privé"}
+                  {owner
+                    ? "Créez votre premier document avec le formulaire ci-dessus."
+                    : "Les documents partagés avec votre établissement apparaîtront ici."}
                 </p>
-              ))}
+              </div>
+            )}
           </section>
-          <section class="card">
-            <h2>Modèles de l’établissement</h2>
+          <section class="card document-library document-templates">
+            <h2>Vos modèles réutilisables</h2>
+            <p>
+              Les trames de votre établissement, prêtes pour vos prochains
+              échanges.
+            </p>
+            {!visibleTemplates.length && (
+              <p class="empty">
+                Aucun modèle pour le moment. Enregistrez un document comme
+                modèle depuis l’atelier.
+              </p>
+            )}
             {templates
               .filter((t) => t.kind === kind)
               .map((t) => (
@@ -160,93 +278,111 @@ export function DocumentsView({
               data-kind={doc.kind}
             >
               <div class="card document-settings">
-                <h2>Brouillon privé</h2>
-                <p>
-                  Seul son auteur peut reprendre ce brouillon. Après envoi, les
-                  changements produisent une nouvelle version.
+                <div class="document-settings-head">
+                  <div>
+                    <span class="document-eyebrow">ATELIER HOSLINK</span>
+                    <h2>Votre document</h2>
+                  </div>
+                  <span data-save-status role="status" aria-live="polite">
+                    Enregistré
+                  </span>
+                </div>
+                <p class="document-help">
+                  Sauvegarde automatique. Votre brouillon reste privé jusqu’à
+                  l’envoi.
                 </p>
-                <p data-save-status role="status">
-                  Enregistré
-                </p>
-                <input type="hidden" data-csrf value={csrf} />
-                <label>
-                  Titre
-                  <input data-title value={doc.title} maxlength={200} />
-                </label>
-                <label>
-                  Mise en page
-                  <select data-field="layout" value={doc.draft.layout}>
-                    {doc.kind === "quote" ? (
-                      <>
-                        <option value="classic">Devis classique</option>
-                        <option value="modern">Devis moderne</option>
-                      </>
-                    ) : (
-                      <option value="partnership">
-                        Contrat de partenariat
-                      </option>
-                    )}
-                  </select>
-                </label>
-                {fields
-                  .filter(([key]) =>
-                    doc.kind === "quote"
-                      ? ![
-                          "benefits",
-                          "commitments",
-                          "start",
-                          "end",
-                          "renewal",
-                        ].includes(key)
-                      : key !== "validUntil",
-                  )
-                  .map(([key, label]) => (
+                <section class="document-section">
+                  <h3>
+                    <span>01</span> Informations générales
+                  </h3>
+                  <div class="document-field-grid">
+                    <input type="hidden" data-csrf value={csrf} />
                     <label>
-                      {label}
-                      {[
-                        "issuer",
-                        "recipient",
-                        "conditions",
-                        "benefits",
-                        "commitments",
-                        "renewal",
-                      ].includes(key) ? (
-                        <textarea data-field={key} rows={3} maxlength={10000}>
-                          {doc.draft[key]}
-                        </textarea>
-                      ) : (
-                        <input
-                          data-field={key}
-                          type={
-                            ["date", "validUntil", "start", "end"].includes(key)
-                              ? "date"
-                              : "text"
-                          }
-                          value={doc.draft[key]}
-                        />
-                      )}
+                      Titre
+                      <input data-title value={doc.title} maxlength={200} />
                     </label>
-                  ))}
-                {doc.kind === "quote" && (
-                  <>
-                    <h3>Prestations</h3>
-                    <div data-lines />
-                    <button type="button" data-add-line>
-                      Ajouter une prestation
-                    </button>
-                    <p data-totals />
-                  </>
-                )}
-                <h3>Champs sur fond PDF</h3>
-                <p>
-                  Coordonnées relatives à la page : X et Y de 0 à 1 depuis le
-                  coin supérieur gauche. Cliquez dans l’aperçu pour positionner
-                  un texte.
-                </p>
-                <div data-pdf-fields />
-                <button type="button" data-add-field>
-                  Ajouter un champ
-                </button>
+                    <label>
+                      Mise en page
+                      <select data-field="layout" value={doc.draft.layout}>
+                        {doc.kind === "quote" ? (
+                          <>
+                            <option value="classic">Devis classique</option>
+                            <option value="modern">Devis moderne</option>
+                          </>
+                        ) : (
+                          <option value="partnership">
+                            Contrat de partenariat
+                          </option>
+                        )}
+                      </select>
+                    </label>
+                    {fields
+                      .filter(
+                        ([key]) =>
+                          ["reference", "date", "validUntil"].includes(key) &&
+                          (isQuote || key !== "validUntil"),
+                      )
+                      .map(renderField)}
+                  </div>
+                </section>
+                <section class="document-section">
+                  <h3>
+                    <span>02</span> Les parties
+                  </h3>
+                  <div class="document-field-grid">
+                    {fields
+                      .filter(([key]) => ["issuer", "recipient"].includes(key))
+                      .map(renderField)}
+                  </div>
+                </section>
+                <section class="document-section">
+                  <h3>
+                    <span>03</span>{" "}
+                    {isQuote
+                      ? "Prestations & conditions"
+                      : "Conditions du partenariat"}
+                  </h3>
+                  {!isQuote && (
+                    <div class="document-field-grid">
+                      {fields
+                        .filter(([key]) =>
+                          [
+                            "benefits",
+                            "commitments",
+                            "start",
+                            "end",
+                            "renewal",
+                          ].includes(key),
+                        )
+                        .map(renderField)}
+                    </div>
+                  )}
+                  {doc.kind === "quote" && (
+                    <>
+                      <div data-lines />
+                      <button type="button" data-add-line>
+                        Ajouter une prestation
+                      </button>
+                      <p data-totals />
+                    </>
+                  )}
+                  {renderField(["conditions", "Conditions complémentaires"])}
+                </section>
+                <details
+                  class="document-section document-pdf-tools"
+                  open={!!doc.original_pdf}
+                >
+                  <summary>Personnaliser un fond PDF</summary>
+                  <p>
+                    Coordonnées relatives à la page : X et Y de 0 à 1 depuis le
+                    coin supérieur gauche. Cliquez dans l’aperçu pour
+                    positionner un texte.
+                  </p>
+                  <div data-pdf-fields />
+                  <button type="button" data-add-field>
+                    Ajouter un champ
+                  </button>
+                </details>
                 <textarea hidden data-initial>
                   {JSON.stringify(doc.draft)}
                 </textarea>
@@ -259,19 +395,30 @@ export function DocumentsView({
                 </p>
               </div>
               <div class="card document-preview">
-                <h2>Aperçu immédiat</h2>
+                <div class="document-preview-head">
+                  <h2>Aperçu du document</h2>
+                  <span class="badge">En direct</span>
+                </div>
+                <p class="document-help">
+                  Vérifiez le contenu avant de l’envoyer.
+                </p>
                 <div data-live-preview />
                 <div data-pdf-pages />
               </div>
             </section>
           )}
           {editable && (
-            <div class="document-actions card">
+            <div class="document-tools">
               <form
                 method="post"
                 action={`/atelier/${doc.id}/importer`}
                 enctype="multipart/form-data"
               >
+                <h2>Votre propre mise en page</h2>
+                <p>
+                  Importez un fond PDF, puis ajoutez vos textes depuis
+                  l’atelier.
+                </p>
                 {token}
                 <input
                   type="hidden"
@@ -293,18 +440,33 @@ export function DocumentsView({
               {form(
                 `/atelier/${doc.id}/modele`,
                 "Enregistrer comme modèle",
-                <input
-                  name="name"
-                  aria-label="Nom du modèle"
-                  value={doc.title}
-                  required
-                />,
+                <>
+                  <h2>Gagner du temps la prochaine fois</h2>
+                  <p>Conservez cette trame pour votre établissement.</p>
+                  <label>
+                    Nom du modèle
+                    <input name="name" value={doc.title} required />
+                  </label>
+                </>,
               )}
               <form
                 method="post"
                 action={`/atelier/${doc.id}/envoyer`}
                 data-publish
+                id="document-share"
               >
+                <div>
+                  <span class="document-eyebrow">PRÊT À PARTAGER ?</span>
+                  <h2>
+                    {isQuote
+                      ? "Envoyer votre devis"
+                      : "Faire signer votre contrat"}
+                  </h2>
+                  <p>
+                    L’envoi crée une version figée dans votre discussion. Toute
+                    modification ultérieure créera une nouvelle version.
+                  </p>
+                </div>
                 {token}
                 <input
                   type="hidden"
@@ -341,8 +503,14 @@ export function DocumentsView({
               </form>
             </div>
           )}
-          <section class="card">
-            <h2>Versions partagées</h2>
+          <section class="card document-library document-history">
+            <h2>Historique des versions partagées</h2>
+            {!versions.length && (
+              <p class="empty">
+                Aucune version envoyée. Votre document est encore un brouillon
+                privé.
+              </p>
+            )}
             {versions.map((v) => {
               const base = `/atelier/${doc.id}/versions/${v.version}`;
               const statuses: Record<string, string> = {
