@@ -222,7 +222,9 @@ export function pageHandlers(pool: pg.Pool, cfg: Config) {
         break;
       case "offers":
         await reconcile(pool);
-        data = { ...(await project(pool, q[0], [eid]))[0] };
+        data = { ...(await project(pool, q[0], [eid]))[0], BillingEnabled: !!cfg.STRIPE_SECRET_KEY,
+          BillingReturn: c.req.query("paiement"),
+          BillingCustomer: !!(await pool.query("SELECT 1 FROM billing_customers WHERE establishment_id=$1", [eid])).rowCount };
         break;
       case "history":
         data.Items = await project(pool, q[0], [id, eid]);

@@ -94,6 +94,13 @@ test(
         }
       }
       const browser = new Browser();
+      const stripeApp = createApp(pool, auth, { ...cfg, STRIPE_SECRET_KEY:"sk_test_fake", STRIPE_WEBHOOK_SECRET:"whsec_test", STRIPE_SLOT_PRICE_ID:"price_slot", STRIPE_SUBSCRIPTION_PRICE_ID:"price_sub", STRIPE_TEST_TAX_RATE_ID:"txr_test", STRIPE_PORTAL_CONFIGURATION_ID:"bpc_test" });
+      const { default: Stripe } = await import("stripe");
+      const eventBody = JSON.stringify({ id:"evt_test", object:"event", type:"ignored.test", livemode:false, data:{object:{}} });
+      const stripeSignature = Stripe.webhooks.generateTestHeaderString({ payload:eventBody, secret:"whsec_test" });
+      assert.equal((await stripeApp.request("/api/stripe/webhook", {method:"POST",headers:{"stripe-signature":stripeSignature},body:eventBody})).status, 200);
+      assert.equal((await stripeApp.request("/api/stripe/webhook", {method:"POST",headers:{"stripe-signature":stripeSignature},body:eventBody+" "})).status, 400);
+      assert.equal((await stripeApp.request("/api/stripe/webhook", {method:"POST",body:eventBody})).status, 400);
       await browser.request("/recherche?q=spa&station=Paris&category=spa");
       const email = `${randomUUID()}@example.test`;
       let uid: number, eid: number;
@@ -364,6 +371,10 @@ test(
             [other],
           );
           await browser.request("/compte");
+          await pool.query("UPDATE memberships SET role='member' WHERE user_id=$1 AND establishment_id=$2", [uid,eid]);
+          assert.equal((await browser.request("/facturation/checkout", {kind:"slot"})).status, 403);
+          assert.equal((await browser.request("/facturation/portail", {})).status, 403);
+          await pool.query("UPDATE memberships SET role='owner' WHERE user_id=$1 AND establishment_id=$2", [uid,eid]);
           const mappedDirectory = await browser.request(
             "/annuaire?category_filter=1&categories=spa&city=Paris&address=Test&bbox=4.8%2C45.7%2C4.9%2C45.8",
           );

@@ -1217,27 +1217,26 @@ views["offers"] = (d, p) =>
       </section>
       <section class="card pricing">
         <h2>Place permanente</h2>
-        <div class="price">Bientôt</div>
+        <div class="price">${d.BillingEnabled ? "Test Stripe" : "Bientôt"}</div>
         <p>
           Une place supplémentaire achetée une fois, réutilisable quand un
           partenariat se termine.
         </p>
-        <span class="muted">Tarif en préparation</span>
+        ${d.BillingEnabled && d.User.Role === "owner" ? html`<form method="post" action="/facturation/checkout">${views["csrf"](d,p)}<input type="hidden" name="kind" value="slot" /><button>Acheter une place test</button></form>` : html`<span class="muted">Tarif en préparation</span>`}
       </section>
       <section class="card pricing featured">
         <h2>Abonnement</h2>
-        <div class="price">Bientôt</div>
+        <div class="price">${d.BillingEnabled ? "Test Stripe" : "Bientôt"}</div>
         <p>
           Des partenariats illimités pendant la durée de votre abonnement
           mensuel.
         </p>
-        <span>Tarif en préparation</span>
+        ${d.BillingEnabled && d.User.Role === "owner" ? html`<form method="post" action="/facturation/checkout">${views["csrf"](d,p)}<input type="hidden" name="kind" value="subscription" /><button>Tester l’abonnement</button></form>` : html`<span>Tarif en préparation</span>`}
       </section>
     </div>
     <div class="notice">
-      Le pilote utilise les places gratuites. Les achats ouvriront une fois les
-      tarifs et les conditions commerciales finalisés.
-    </div>`;
+      ${d.BillingEnabled ? html`Mode sandbox : aucun paiement réel. Le tarif provisoire hors taxe et la TVA simulée sont affichés sur la page Stripe. Les droits sont mis à jour après confirmation du paiement.${d.BillingReturn === "retour" ? html` Votre paiement est en cours de vérification.` : html``}${d.BillingReturn === "annule" ? html` Le paiement a été annulé.` : html``}` : html`Le pilote utilise les places gratuites. Les achats ouvriront une fois les tarifs et les conditions commerciales finalisés.`}
+    </div>${d.BillingEnabled && d.BillingCustomer && d.User.Role === "owner" ? html`<form method="post" action="/facturation/portail">${views["csrf"](d,p)}<button class="secondary">Gérer ma facturation de test</button></form>` : html``}`;
 const agreementFields = (details: ViewData = {}) => html`<div class="two-col"><label>Avantages clients<textarea name="benefits" maxlength="2000" rows="3">${details.benefits || ""}</textarea></label><label>Engagements de chacun<textarea name="commitments" maxlength="2000" rows="3">${details.commitments || ""}</textarea></label><label>Début<input type="date" name="start" value="${details.start || ""}" /></label><label>Fin prévue<input type="date" name="end" value="${details.end || ""}" /></label><label>Renouvellement à examiner<input type="date" name="renewal" value="${details.renewal || ""}" /></label></div>`;
 const agreementSummary = (details: ViewData = {}) => html`<dl class="agreement-details">${details.benefits ? html`<dt>Avantages clients</dt><dd class="pre">${details.benefits}</dd>` : html``}${details.commitments ? html`<dt>Engagements</dt><dd class="pre">${details.commitments}</dd>` : html``}${details.start ? html`<dt>Début</dt><dd>${details.start}</dd>` : html``}${details.end ? html`<dt>Fin prévue</dt><dd>${details.end}</dd>` : html``}${details.renewal ? html`<dt>Renouvellement à examiner</dt><dd>${details.renewal}</dd>` : html``}</dl>`;
 views["partnerships"] = (d, p) =>
